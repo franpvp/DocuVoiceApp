@@ -35,10 +35,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 
 import androidx.navigation.NavController
@@ -52,6 +58,7 @@ import com.example.semana01.R
 fun Home(navController: NavController) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var isDialogVisible by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -155,9 +162,14 @@ fun Home(navController: NavController) {
                     }
                     Card(
                         modifier = Modifier
-                            .width(300.dp) // Estableciendo el ancho del Card
-                            .height(220.dp) // Estableciendo la altura del Card
-                            .padding(8.dp)  // Padding de la tarjeta
+                            .width(300.dp)
+                            .height(220.dp)
+                            .padding(8.dp)
+                            .clickable {
+                                if (index == 0) {
+                                    isDialogVisible = true // Muestra el diálogo al hacer clic en el primer Card
+                                }
+                            }
                     ) {
                         Box(
                             modifier = Modifier
@@ -287,6 +299,58 @@ fun Home(navController: NavController) {
             }
 
         }
+        // Diálogo
+        if (isDialogVisible) {
+            Dialog(onDismissRequest = { isDialogVisible = false }) {
+                Box(
+                    modifier = Modifier
+                        .size(500.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .padding(20.dp)
+                ) {
+                    var textInput by remember { mutableStateOf("") }
+
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Ingrese texto",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Input field
+                        TextField(
+                            value = textInput,
+                            onValueChange = { textInput = it },
+                            placeholder = { Text("Escribe algo...") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Botón para confirmar
+                        Button(
+                            onClick = {
+                                isDialogVisible = false
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            Text("Confirmar")
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -360,6 +424,53 @@ fun FuncionalidadCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun MinimalDialog(
+    text: String,
+    onTextChange: (String) -> Unit,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Enter your text",
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                TextField(
+                    value = text,
+                    onValueChange = { onTextChange(it) },
+                    placeholder = { Text("Type something...") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = { onDismissRequest() }) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = { onConfirm() }) {
+                        Text("OK")
+                    }
+                }
             }
         }
     }

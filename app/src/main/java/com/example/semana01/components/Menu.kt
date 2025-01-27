@@ -57,8 +57,8 @@ fun Menu(navController: NavController) {
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
-                .padding(start = 8.dp)
-                .align(Alignment.TopStart) // Posicionar en la esquina superior izquierda
+                .padding(start = 20.dp, top = 40.dp)
+                .align(Alignment.TopStart)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow_back),
@@ -66,14 +66,14 @@ fun Menu(navController: NavController) {
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
-        // Contenedor principal centrado
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
                 .align(Alignment.Center),
-            verticalArrangement = Arrangement.Center // Centrar verticalmente los elementos dentro de la columna
+            verticalArrangement = Arrangement.Center
         ) {
             // Foto de perfil centrada
             Row(

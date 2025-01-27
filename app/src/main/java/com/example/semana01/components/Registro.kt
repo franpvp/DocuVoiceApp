@@ -79,12 +79,6 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                // Fecha en la esquina superior izquierda
-                Text(
-                    text = selectedDate,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.align(Alignment.TopStart)
-                )
 
                 // Título centrado
                 Text(
@@ -110,7 +104,7 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(80.dp))
 
             // Campos de entrada con validación
             InputField(
@@ -233,7 +227,8 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .padding(vertical = 16.dp)
+                    .height(60.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
@@ -241,7 +236,7 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
             ) {
                 Text(
                     text = "Registrarse",
-                    fontSize = 16.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
             }

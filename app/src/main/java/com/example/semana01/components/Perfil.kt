@@ -12,47 +12,136 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.semana01.R
 
 @Composable
 fun Perfil(navController: NavController) {
     var selectedTab by remember { mutableStateOf(2) }
-    var showDialog by remember { mutableStateOf(false) } // Estado para mostrar el diálogo
+    var showDialog by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5)) // Fondo claro
+            .verticalScroll(rememberScrollState()) // Scroll general
     ) {
         Column(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(top = 32.dp), // Margen superior
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Perfil",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            // Encabezado con flecha de retroceso y título
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp), // Margen del encabezado
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = { navController.popBackStack() }, // Navegar hacia atrás
+                    modifier = Modifier.size(30.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_arrow_back),
+                        contentDescription = "Volver",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Text(
+                    text = "Perfil",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontSize = 30.sp
+                )
+
+                Spacer(modifier = Modifier.size(30.dp)) // Espaciador invisible
+            }
+
+            Spacer(modifier = Modifier.height(100.dp))
+
+            // Foto de perfil
+            Box(
+                modifier = Modifier
+                    .size(150.dp)
+                    .clip(CircleShape)
+                    .background(Color.Gray)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_user),
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .align(Alignment.Center),
+                    tint = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Campos de texto no editables
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                OutlinedTextField(
+                    value = "Juan",
+                    onValueChange = {},
+                    label = { Text("Nombre") },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = "Pérez",
+                    onValueChange = {},
+                    label = { Text("Apellido") },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = "juan.perez@example.com",
+                    onValueChange = {},
+                    label = { Text("Correo electrónico") },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = "01/01/1990",
+                    onValueChange = {},
+                    label = { Text("Fecha de nacimiento") },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true
+                )
+            }
         }
 
+        // Barra de navegación en la parte inferior
         Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter) // Lo posiciona en la parte inferior del `Box` principal
-                .padding(horizontal = 6.dp) // Espaciado alrededor
-                .clip(RoundedCornerShape(24.dp)) // Bordes redondeados
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 6.dp)
+                .clip(RoundedCornerShape(24.dp))
                 .background(Color.Black)
-                .padding(vertical = 6.dp) // Espaciado interno del tab
+                .padding(vertical = 6.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(70.dp), // Altura fija para garantizar consistencia
+                    .height(70.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically // Centra los íconos verticalmente
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_home),
@@ -60,8 +149,10 @@ fun Perfil(navController: NavController) {
                     tint = if (selectedTab == 0) Color.White else Color.Gray,
                     modifier = Modifier
                         .size(30.dp)
-                        .clickable { selectedTab = 0
-                            navController.navigate("home")}
+                        .clickable {
+                            selectedTab = 0
+                            navController.navigate("home")
+                        }
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.ic_email),
@@ -86,43 +177,6 @@ fun Perfil(navController: NavController) {
                         }
                 )
             }
-        }
-
-        // Dialogo de confirmación para cerrar sesión con estilo Material Design
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("¿Está seguro de que desea cerrar sesión?", style = MaterialTheme.typography.bodySmall) },
-                text = {
-                    Text("Se cerrará su sesión actual y perderá cualquier cambio no guardado.",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            // Lógica para cerrar sesión (redirigir a Login)
-                            navController.navigate("login") // Navegar al login
-                            showDialog = false // Cerrar el diálogo
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text("Sí", style = MaterialTheme.typography.bodySmall)
-                    }
-                },
-                dismissButton = {
-                    Button(
-                        onClick = { showDialog = false },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
-                    ) {
-                        Text("Cancelar", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-            )
         }
     }
 }

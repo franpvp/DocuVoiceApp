@@ -92,17 +92,17 @@ fun MisMensajes(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 72.dp) // Espaciado debajo del encabezado
+                .padding(top = 100.dp) // Espaciado debajo del encabezado
                 .verticalScroll(rememberScrollState())
         ) {
             CardMensajes(
                 title = "Mensaje Almacenado 1",
-                description = "Extrae texto de documentos como PDFs e imágenes para convertirlo en audio o texto accesible.",
+                description = "Descripción mensaje 1",
                 onClick = {  }
             )
             CardMensajes(
                 title = "Mensaje Almacenado 2",
-                description = "Organiza documentos en categorías como contratos, recibos y más, para facilitar su gestión.",
+                description = "Descripción mensaje 2",
                 onClick = {  }
             )
         }
@@ -172,7 +172,7 @@ fun CardMensajes(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(20.dp)
     ) {
         Column(
             modifier = Modifier
@@ -200,7 +200,8 @@ fun CardMensajes(
             ) {
                 Button(
                     onClick = onClick,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier
+                        .padding(top = 8.dp)
                 ) {
                     Text(text = "Ejecutar")
                 }
