@@ -73,7 +73,7 @@ fun Login(
     // Manejar el efecto de carga
     if (isLoading.value) {
         LaunchedEffect(Unit) {
-            delay(2000) // Simular 2 segundos de carga
+            delay(3000)
             isLoading.value = false
             onLoginClick()
         }

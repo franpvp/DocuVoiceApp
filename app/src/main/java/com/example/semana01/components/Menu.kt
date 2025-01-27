@@ -114,20 +114,20 @@ fun Menu(navController: NavController) {
                 // Opciones del menú como botones
                 val buttonModifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
-                    .height(48.dp)
+                    .padding(bottom = 25.dp)
+                    .height(60.dp)
 
                 Button(
                     onClick = {
-                        navController.navigate("perfil") // Navegar a la pantalla de Mi Perfil
+                        navController.navigate("perfil")
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                    modifier = buttonModifier
+
                 ) {
                     Text(
                         text = "Mi Perfil",
-                        fontSize = 16.sp
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
 
@@ -137,7 +137,7 @@ fun Menu(navController: NavController) {
                 ) {
                     Text(
                         text = "Cambio de Contraseña",
-                        fontSize = 16.sp
+                        fontSize = 20.sp,
                     )
                 }
 
@@ -146,7 +146,7 @@ fun Menu(navController: NavController) {
                     modifier = buttonModifier
                 ) {
                     Text(text = "Contacto",
-                        fontSize = 16.sp
+                        fontSize = 20.sp,
                     )
                 }
 
@@ -157,7 +157,7 @@ fun Menu(navController: NavController) {
                 ) {
                     Text(
                         text = "Cerrar Sesión",
-                        fontSize = 16.sp
+                        fontSize = 20.sp
                     )
                 }
             }
@@ -186,7 +186,7 @@ fun Menu(navController: NavController) {
                     modifier = Modifier
                         .size(30.dp)
                         .clickable { selectedTab = 0
-                            navController.navigate("hpme")}
+                            navController.navigate("home")}
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.ic_email),

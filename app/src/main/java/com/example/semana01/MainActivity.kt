@@ -23,7 +23,6 @@ import com.example.semana01.ui.theme.Semana01Theme
 import com.example.semana01.components.Login
 import com.example.semana01.components.Menu
 import com.example.semana01.components.MisMensajes
-import com.example.semana01.components.Notificaciones
 import com.example.semana01.components.Perfil
 import com.example.semana01.components.Registro
 import com.example.semana01.utils.UserManager
@@ -117,11 +116,10 @@ fun MyApp() {
         }
         composable("contacto") {
             Contacto(
+                onContactSubmit = {navController.navigate("home")},
                 navController = navController
             )
         }
-        composable("not") {
-            Notificaciones()
-        }
+
     }
 }

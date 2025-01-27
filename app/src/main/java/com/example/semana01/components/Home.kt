@@ -146,7 +146,7 @@ fun Home(navController: NavController) {
                     .offset(y = 100.dp)
 
             ) {
-                items(4) { index ->
+                items(3) { index ->
                     val (animationResId, cardText) = when (index) {
                         0 -> Pair(R.raw.text, "Escribir Texto")
                         1 -> Pair(R.raw.translation, "Traducción Automática")
@@ -220,19 +220,19 @@ fun Home(navController: NavController) {
             FuncionalidadCard(
                 title = "Reconocimiento de Texto (OCR)",
                 description = "Extrae texto de documentos como PDFs e imágenes para convertirlo en audio o texto accesible.",
-                imageResId = R.drawable.ic_ocr,  // Agregar imagen relevante
+                imageResId = R.drawable.file,  // Agregar imagen relevante
                 onClick = {  }
             )
             FuncionalidadCard(
                 title = "Modificar Contraste Interfaz",
                 description = "Extrae texto de documentos como PDFs e imágenes para convertirlo en audio o texto accesible.",
-                imageResId = R.drawable.ic_ocr,  // Agregar imagen relevante
+                imageResId = R.drawable.interfaz,  // Agregar imagen relevante
                 onClick = {  }
             )
             FuncionalidadCard(
                 title = "Pedir Ayuda",
-                description = "Convierte documentos en otros idiomas a tu idioma preferido para una comprensión más fácil.",
-                imageResId = R.drawable.ic_translation,
+                description = "Genera un sonido para solicitar ayuda",
+                imageResId = R.raw.help,
                 onClick = { /* Acción al hacer clic */ }
             )
             Spacer(modifier = Modifier.height(64.dp))
@@ -298,7 +298,6 @@ fun FuncionalidadCard(
     imageResId: Int,
     onClick: () -> Unit
 ) {
-    // Si estás usando Lottie, mantén la animación, de lo contrario, puedes cargar una imagen estática
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
@@ -311,54 +310,55 @@ fun FuncionalidadCard(
                 .fillMaxWidth()
                 .padding(16.dp)  // Ajuste de padding para mejorar la presentación
         ) {
-            // Animación Lottie (si se usa) o imagen estática
-            if (imageResId == R.raw.text || imageResId == R.raw.translation || imageResId == R.raw.voice) {
-                // Animación Lottie
-                val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(imageResId))
-                val progress by rememberInfiniteTransition().animateFloat(
-                    initialValue = 0f,
-                    targetValue = 1f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = 1000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
+            // Animación Lottie o imagen estática
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(5.dp)
+            ) {
+                if (imageResId in listOf(R.raw.text, R.raw.translation, R.raw.voice, R.raw.help)) {
+                    // Animación Lottie
+                    val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(imageResId))
+                    val progress by rememberInfiniteTransition().animateFloat(
+                        initialValue = 0f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(durationMillis = 1500, easing = LinearEasing),
+                            repeatMode = RepeatMode.Restart
+                        )
                     )
-                )
-                LottieAnimation(
-                    composition = composition,
-                    progress = { progress },
-                    modifier = Modifier
-                        .size(50.dp)  // Ajusta el tamaño de la animación
-                        .align(Alignment.CenterVertically)
-                )
-            } else {
-                // Si no es animación, cargamos una imagen estática
-                Image(
-                    painter = painterResource(id = imageResId),
-                    contentDescription = "Funcionalidad Icon",
-                    modifier = Modifier
-                        .size(50.dp) // Ajusta el tamaño de la imagen
-                        .align(Alignment.CenterVertically)
-                )
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Imagen estática
+                    Image(
+                        painter = painterResource(id = imageResId),
+                        contentDescription = title,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Título y descripción
+            // Texto de la tarjeta
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.CenterVertically)
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxHeight()
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = Color.Gray
                 )
             }
         }

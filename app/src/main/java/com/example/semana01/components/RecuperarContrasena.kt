@@ -26,7 +26,9 @@ fun RecuperarContrasenaForm(
     val context = LocalContext.current
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp)
     ) {
         // Botón de volver en la esquina superior izquierda
         IconButton(
@@ -52,15 +54,16 @@ fun RecuperarContrasenaForm(
                 text = "Recuperar Contraseña",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
             Text(
-                text = "Ingresa tu correo electrónico registrado. Te enviaremos un código para restablecer tu contraseña.",
-                fontSize = 14.sp,
-                color = Color.Gray
+                text = "Ingresa tu correo electrónico.",
+                fontSize = 20.sp,
+                color = Color.Black
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -95,9 +98,18 @@ fun RecuperarContrasenaForm(
                         errorMessage = "El correo ingresado no está registrado."
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp) // Altura personalizada
+                    .padding(top = 20.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Enviar")
+                Text(
+                    "Confirmar",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    style = MaterialTheme.typography.labelLarge // Tipografía personalizada
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
