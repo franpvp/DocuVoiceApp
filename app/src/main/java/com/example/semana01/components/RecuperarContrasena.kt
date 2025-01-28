@@ -17,11 +17,9 @@ import com.example.semana01.utils.UserManager
 
 @Composable
 fun RecuperarContrasenaForm(
-    onCodeSent: () -> Unit,
     navController: NavController
 ) {
     var email by remember { mutableStateOf("") }
-    var isEmailSent by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
@@ -86,16 +84,12 @@ fun RecuperarContrasenaForm(
             // Botón de Enviar
             Button(
                 onClick = {
-                    val resetCode = (100000..999999).random().toString() // Código aleatorio
-                    val isUserFound = UserManager.saveResetCode(context, email, resetCode)
-
-                    if (isUserFound) {
-                        isEmailSent = true
-                        errorMessage = null
-                        onCodeSent() // Navegar a la pantalla de verificación
+                    // Aquí se validará el correo ingresado
+                    if (UserManager.getUsersFromPrefs(context).any { it.email == email }) {
+                        // Si el correo existe, redirigir a la pantalla para cambiar la contraseña
+                        navController.navigate("changePassword/$email")
                     } else {
-                        isEmailSent = false
-                        errorMessage = "El correo ingresado no está registrado."
+                        errorMessage = "Correo no registrado"
                     }
                 },
                 modifier = Modifier
@@ -115,24 +109,13 @@ fun RecuperarContrasenaForm(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Mensaje de Error o Confirmación
-            when {
-                isEmailSent -> {
-                    Text(
-                        text = "Se ha enviado un código a tu correo electrónico.",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                errorMessage != null -> {
-                    Text(
-                        text = errorMessage ?: "",
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
-
-
 }

@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.semana01.components.CambiarContrasenaForm
 import com.example.semana01.components.Contacto
 import com.example.semana01.components.Home
 import com.example.semana01.ui.theme.Semana01Theme
@@ -91,13 +93,22 @@ fun MyApp() {
         composable("forgotPassword") {
             // Aquí se pasa el callback onEmailSent que navegará hacia atrás al login
             RecuperarContrasenaForm(
-                navController = navController,
-                onCodeSent = { navController.popBackStack() } // Regresa a la pantalla de login
+                navController = navController
             )
         }
         composable("home") {
             Home(
                 navController = navController
+            )
+        }
+
+        composable("changePassword/{email}") { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            CambiarContrasenaForm(
+                navController = navController,
+                email = email,
+                onPasswordChanged = { navController.popBackStack() },
+                context = LocalContext.current
             )
         }
 

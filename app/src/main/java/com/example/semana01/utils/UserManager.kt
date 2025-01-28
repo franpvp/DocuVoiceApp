@@ -53,24 +53,6 @@ object UserManager {
         return users.any { it.email == email && it.password == password }
     }
 
-    // Guardar el código de recuperación para un usuario
-    fun saveResetCode(context: Context, email: String, resetCode: String): Boolean {
-        val users = getUsersFromPrefs(context).toMutableList()
-        val user = users.find { it.email == email }
-        return if (user != null) {
-            user.resetCode = resetCode
-            saveUsersToPrefs(context, users)
-            true
-        } else {
-            false
-        }
-    }
-
-    // Validar el código de recuperación
-    fun validateResetCode(context: Context, email: String, resetCode: String): Boolean {
-        val users = getUsersFromPrefs(context)
-        return users.any { it.email == email && it.resetCode == resetCode }
-    }
 
     // Actualizar la contraseña de un usuario
     fun updatePassword(context: Context, email: String, newPassword: String): Boolean {
@@ -78,7 +60,6 @@ object UserManager {
         val user = users.find { it.email == email }
         return if (user != null) {
             user.password = newPassword
-            user.resetCode = null
             saveUsersToPrefs(context, users)
             true
         } else {
@@ -95,7 +76,6 @@ object UserManager {
 data class User(
     val email: String,
     var password: String,
-    var resetCode: String? = null,
     val firstName: String,
     val lastName: String
 )
