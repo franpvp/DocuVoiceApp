@@ -4,6 +4,8 @@ Este proyecto busca proporcionar una solución accesible para personas con disca
 
 - **Análisis de Texto:** Permite a los usuarios analizar texto de manera simple.
 - **Lectura de PDFs:** Los usuarios pueden escuchar PDFs en lugar de leerlos.
+- **Traduccion automatica de archivos:** Los archivos PDF pueden ser traducidos.
+- **Texto a voz:** El texto es tranformado a sonido.
 - **Solicitud de Ayuda:** Los usuarios pueden pedir asistencia cuando lo necesiten.
 - **Inicio de Sesión y Registro:** Los usuarios pueden crear una cuenta e iniciar sesión.
 - **Cambio de Contraseña:** Función para solicitar un cambio de contraseña en caso de ser necesario.
