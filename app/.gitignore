@@ -1,1 +1,6 @@
 /build
+/.gradle
+/local.properties
+/captures
+/.idea
+app/google-services.json
