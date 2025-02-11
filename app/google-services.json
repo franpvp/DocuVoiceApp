@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "777983333344",
+    "project_id": "docuvoiceapp",
+    "storage_bucket": "docuvoiceapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:777983333344:android:4fa5b80973128180f31185",
+        "android_client_info": {
+          "package_name": "com.duocuc.docuvoiceapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJuomhBlNG_6aEh7m65AGoCESIfqG7A1M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

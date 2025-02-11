@@ -13,6 +13,7 @@ materialVersion = "1.9.0"
 navigationCompose = "2.8.5"
 appcompat = "1.7.0"
 material = "1.12.0"
+firebaseCommonKtx = "21.0.0"
 
 [libraries]
 androidx-drawerlayout = { module = "androidx.drawerlayout:drawerlayout", version.ref = "drawerlayout" }
@@ -35,6 +36,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 material-v190 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+firebase-common-ktx = { group = "com.google.firebase", name = "firebase-common-ktx", version.ref = "firebaseCommonKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
