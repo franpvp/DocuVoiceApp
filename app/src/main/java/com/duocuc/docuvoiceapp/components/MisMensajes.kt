@@ -1,6 +1,8 @@
 package com.duocuc.docuvoiceapp.components
 
+import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +44,9 @@ import com.duocuc.docuvoiceapp.R
 @Composable
 fun MisMensajes(navController: NavController) {
     var selectedTab by remember { mutableStateOf(1) }
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
+    val mensajesGuardados = sharedPreferences.getStringSet("mensajes", mutableSetOf())?.toList() ?: listOf()
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Encabezado con el botón de retroceder y el título centrado
@@ -87,23 +92,20 @@ fun MisMensajes(navController: NavController) {
             }
         }
 
-        // Lista de tarjetas debajo del encabezado
+        // Lista de mensajes guardados
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 100.dp) // Espaciado debajo del encabezado
+                .padding(top = 100.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            CardMensajes(
-                title = "Mensaje Almacenado 1",
-                description = "Descripción mensaje 1",
-                onClick = {  }
-            )
-            CardMensajes(
-                title = "Mensaje Almacenado 2",
-                description = "Descripción mensaje 2",
-                onClick = {  }
-            )
+            mensajesGuardados.forEachIndexed { index, mensaje ->
+                CardMensajes(
+                    title = "Mensaje $index",
+                    description = mensaje,
+                    onClick = { }
+                )
+            }
         }
 
         // Tab en la parte inferior

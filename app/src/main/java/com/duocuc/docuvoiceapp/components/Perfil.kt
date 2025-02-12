@@ -1,5 +1,6 @@
 package com.duocuc.docuvoiceapp.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,14 +16,59 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.docuvoiceapp.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 @Composable
 fun Perfil(navController: NavController) {
     var selectedTab by remember { mutableStateOf(2) }
     var showDialog by remember { mutableStateOf(false) }
+
+    // Obtener datos de usuario logeado
+    val context = LocalContext.current
+    val userNameState = remember { mutableStateOf("") }
+    val userLastNameState = remember { mutableStateOf("") }
+    val userEmailState = remember { mutableStateOf("") }
+    val fechaNacimientoState = remember { mutableStateOf("") }
+
+    // Obtener referencia a la base de datos
+    val database = FirebaseDatabase.getInstance().reference
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+
+    // Obtener el nombre del usuario desde Firebase Database
+    LaunchedEffect(Unit) {
+        currentUser?.uid?.let { uid ->
+            database.child("usuarios").child(uid)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val nombre = snapshot.child("nombre").value as? String
+                    val apellido = snapshot.child("apellido").value as? String
+                    val correo = snapshot.child("correo").value as? String
+                    val fechaNacimiento = snapshot.child("fechaNacimiento").value as? String
+
+                    if (!nombre.isNullOrEmpty()) {
+                        userNameState.value = nombre
+                    }
+                    if (!apellido.isNullOrEmpty()) {
+                        userLastNameState.value = apellido
+                    }
+                    if (!correo.isNullOrEmpty()) {
+                        userEmailState.value = correo
+                    }
+                    if (!fechaNacimiento.isNullOrEmpty()) {
+                        fechaNacimientoState.value = fechaNacimiento
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(context, "Error al obtener los datos", Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -94,7 +140,7 @@ fun Perfil(navController: NavController) {
                     .padding(horizontal = 16.dp)
             ) {
                 OutlinedTextField(
-                    value = "Juan",
+                    value = userNameState.value,
                     onValueChange = {},
                     label = { Text("Nombre") },
                     modifier = Modifier.fillMaxWidth(),
@@ -102,7 +148,7 @@ fun Perfil(navController: NavController) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = "Pérez",
+                    value = userLastNameState.value,
                     onValueChange = {},
                     label = { Text("Apellido") },
                     modifier = Modifier.fillMaxWidth(),
@@ -110,7 +156,7 @@ fun Perfil(navController: NavController) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = "juan.perez@example.com",
+                    value = userEmailState.value,
                     onValueChange = {},
                     label = { Text("Correo electrónico") },
                     modifier = Modifier.fillMaxWidth(),
@@ -118,7 +164,7 @@ fun Perfil(navController: NavController) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = "01/01/1990",
+                    value = fechaNacimientoState.value,
                     onValueChange = {},
                     label = { Text("Fecha de nacimiento") },
                     modifier = Modifier.fillMaxWidth(),

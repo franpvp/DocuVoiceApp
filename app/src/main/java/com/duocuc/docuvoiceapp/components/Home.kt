@@ -1,7 +1,10 @@
 package com.duocuc.docuvoiceapp.components
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
@@ -37,6 +40,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
@@ -49,11 +53,16 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.duocuc.docuvoiceapp.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 @Composable
 fun Home(navController: NavController) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var textInput by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
     var isDialogVisible by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -64,6 +73,37 @@ fun Home(navController: NavController) {
             }
         }
     )
+
+    // Función para guardar mensaje localmente
+    fun guardarMensaje(context: Context, message: String) {
+        val sharedPreferences: SharedPreferences =
+            context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putString("mensaje_guardado", message).apply()
+    }
+
+    val userNameState = remember { mutableStateOf("User") }
+
+    // Obtener referencia a la base de datos
+    val database = FirebaseDatabase.getInstance().reference
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+
+    // Obtener el nombre del usuario desde Firebase Database
+    LaunchedEffect(Unit) {
+        currentUser?.uid?.let { uid ->
+            database.child("usuarios").child(uid).child("nombre")
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val nombre = snapshot.value as? String
+                    if (nombre != null) {
+                        userNameState.value = nombre
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(context, "Error al obtener el nombre", Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -125,13 +165,12 @@ fun Home(navController: NavController) {
 
                 Spacer(modifier = Modifier.width(12.dp)) // Espacio entre la imagen y el texto
 
-                // Texto "Hola, User"
                 Text(
-                    text = "Hola, User", // Puedes reemplazar "User" por el nombre dinámicamente
+                    text = "Hola, ${userNameState.value}",
                     color = Color.White,
-                    style = MaterialTheme.typography.bodyLarge, // Ajusta el estilo de texto según desees
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
-                        .padding(start = 10.dp) // Ajusta el espacio entre la imagen y el texto
+                        .padding(start = 10.dp)
                 )
             }
         }
@@ -305,7 +344,6 @@ fun Home(navController: NavController) {
                         .background(Color.White)
                         .padding(20.dp)
                 ) {
-                    var textInput by remember { mutableStateOf("") }
 
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -334,10 +372,16 @@ fun Home(navController: NavController) {
                         // Botón para confirmar
                         Button(
                             onClick = {
+                                // Guardar en SharedPreferences
+                                val editor = sharedPreferences.edit()
+                                val existingMessages = sharedPreferences.getStringSet("mensajes", mutableSetOf()) ?: mutableSetOf()
+                                existingMessages.add(textInput)
+                                editor.putStringSet("mensajes", existingMessages)
+                                editor.apply()
+
                                 isDialogVisible = false
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Confirmar")
                         }

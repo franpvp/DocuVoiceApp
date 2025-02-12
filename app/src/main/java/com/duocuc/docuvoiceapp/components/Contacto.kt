@@ -27,6 +27,8 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.duocuc.docuvoiceapp.R
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +44,30 @@ fun Contacto(
     val isSending = remember { mutableStateOf(false) } // Estado de carga
     val isFormValid = remember { mutableStateOf(true) } // Validación del formulario
     val submissionError = remember { mutableStateOf(false) } // Estado para errores de envío
+
+    // Referencia a la base de datos de Firebase
+    val database: DatabaseReference = FirebaseDatabase.getInstance().getReference("contacto")
+
+    // Función para guardar información de formulario de contacto
+    fun guardarContactInfo(name: String, email: String, message: String) {
+        val contactId = database.push().key
+        if (contactId != null) {
+            val contactData = mapOf(
+                "name" to name,
+                "email" to email,
+                "message" to message
+            )
+            database.child(contactId).setValue(contactData)
+                .addOnSuccessListener {
+                    isSending.value = false
+                    onContactSubmit()
+                }
+                .addOnFailureListener {
+                    submissionError.value = true
+                    isSending.value = false
+                }
+        }
+    }
 
     // Animación de Lottie
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.send2))
@@ -147,8 +173,9 @@ fun Contacto(
                     if (name.isNotEmpty() && email.isNotEmpty() && message.isNotEmpty()) {
                         isSending.value = true // Activar animación de carga
                         isFormValid.value = true
+                        guardarContactInfo(name, email, message)
                     } else {
-                        submissionError.value = true // Mostrar error si los campos están vacíos
+                        submissionError.value = true
                     }
                 },
                 modifier = Modifier
