@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,7 +44,7 @@ import com.duocuc.docuvoiceapp.R
 
 @Composable
 fun MisMensajes(navController: NavController) {
-    var selectedTab by remember { mutableStateOf(1) }
+    var selectedTab by remember { mutableIntStateOf(1) }
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
     val mensajesGuardados = sharedPreferences.getStringSet("mensajes", mutableSetOf())?.toList() ?: listOf()

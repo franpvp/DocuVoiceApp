@@ -1,3 +1,4 @@
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,6 +13,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.docuvoiceapp.R
 import com.duocuc.docuvoiceapp.utils.UserManager
+import com.google.firebase.auth.ActionCodeSettings
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun RecuperarContrasenaForm(
@@ -20,6 +23,27 @@ fun RecuperarContrasenaForm(
     var email by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+
+    fun enviarCodigo() {
+        if (email.isEmpty()) {
+            errorMessage = "Ingresa un correo válido."
+            return
+        }
+
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(context, "Código enviado a tu correo", Toast.LENGTH_LONG).show()
+                    navController.navigate("login")
+                } else {
+                    errorMessage = "Error al enviar el código."
+                }
+            }
+            .addOnFailureListener { e ->
+                errorMessage = "Fallo: ${e.localizedMessage}"
+            }
+    }
 
     Box(
         modifier = Modifier
@@ -83,12 +107,13 @@ fun RecuperarContrasenaForm(
             Button(
                 onClick = {
                     // Aquí se validará el correo ingresado
-                    if (UserManager.getUsersFromPrefs(context).any { it.email == email }) {
-                        // Si el correo existe, redirigir a la pantalla para cambiar la contraseña
-                        navController.navigate("changePassword/$email")
-                    } else {
-                        errorMessage = "Correo no registrado"
-                    }
+//                    if (UserManager.getUsersFromPrefs(context).any { it.email == email }) {
+//                        // Si el correo existe, redirigir a la pantalla para cambiar la contraseña
+//                        navController.navigate("changePassword/$email")
+//                    } else {
+//                        errorMessage = "Correo no registrado"
+//                    }
+                    enviarCodigo()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -100,7 +125,7 @@ fun RecuperarContrasenaForm(
                     "Confirmar",
                     color = Color.White,
                     fontSize = 20.sp,
-                    style = MaterialTheme.typography.labelLarge // Tipografía personalizada
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
 
