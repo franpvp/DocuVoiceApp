@@ -3,6 +3,7 @@ package com.duocuc.docuvoiceapp
 import RecuperarContrasenaForm
 import android.content.Context
 import android.os.Bundle
+import android.speech.SpeechRecognizer
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -50,23 +51,24 @@ class MainActivity : ComponentActivity() {
 
             }
         }
-        logRegisteredUsers(this)
+        // logRegisteredUsers(this)
     }
 }
 
-private fun logRegisteredUsers(context: Context) {
-    // Obtener la lista de usuarios desde UserManager
-    val users = UserManager.getUsersFromPrefs(context)
+//private fun logRegisteredUsers(context: Context) {
+//    // Obtener la lista de usuarios desde UserManager
+//    val users = UserManager.getUsersFromPrefs(context)
+//
+//    // Verificar si hay usuarios y loguearlos
+//    if (users.isNotEmpty()) {
+//        users.forEach { user ->
+//            Log.d("MainActivity", "Usuario registrado: Email: ${user.email}, Nombre: ${user.firstName}, Apellido: ${user.lastName}, Password: ${user.password}")
+//        }
+//    } else {
+//        Log.d("MainActivity", "No hay usuarios registrados.")
+//    }
+//}
 
-    // Verificar si hay usuarios y loguearlos
-    if (users.isNotEmpty()) {
-        users.forEach { user ->
-            Log.d("MainActivity", "Usuario registrado: Email: ${user.email}, Nombre: ${user.firstName}, Apellido: ${user.lastName}, Password: ${user.password}")
-        }
-    } else {
-        Log.d("MainActivity", "No hay usuarios registrados.")
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

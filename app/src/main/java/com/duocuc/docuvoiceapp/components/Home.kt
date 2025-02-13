@@ -1,8 +1,16 @@
 package com.duocuc.docuvoiceapp.components
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -16,7 +24,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Icon
@@ -33,7 +40,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -46,7 +52,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
-
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.airbnb.lottie.compose.LottieAnimation
@@ -58,12 +63,91 @@ import com.google.firebase.database.FirebaseDatabase
 
 @Composable
 fun Home(navController: NavController) {
+    val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var textInput by remember { mutableStateOf("") }
-    val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
     var isDialogVisible by remember { mutableStateOf(false) }
+    var isSpeechDialogVisible by remember { mutableStateOf(false) }
+    var speechText by remember { mutableStateOf("") }
+    val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
+    val handler = Handler(Looper.getMainLooper())
+    var silencioDetectado = false
+
+    val recognizerIntent = remember {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES")
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+            isGranted ->
+        if (isGranted) {
+            speechRecognizer.startListening(recognizerIntent)
+        } else {
+            Toast.makeText(context, "Permiso de reconocimiento de voz denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+     val detenerSiNoHayVoz = Runnable {
+        Log.d("Speech", "No hay voz detectada por 3s, deteniendo micrófono")
+        speechRecognizer.stopListening()
+    }
+
+    val recognizerListener = object : RecognitionListener {
+        override fun onReadyForSpeech(p0: Bundle?) {
+            Log.d("SpeechRecognizer", "Listo para escuchar")
+            silencioDetectado = false
+        }
+
+        override fun onBeginningOfSpeech() {
+            Log.d("SpeechRecognizer", "Escuchando...")
+            silencioDetectado = false
+            handler.removeCallbacks(detenerSiNoHayVoz)
+        }
+
+        override fun onRmsChanged(p0: Float) {
+            if (p0 > 0.8) {
+                // Si se detecta sonido, reiniciamos el temporizador de silencio
+                handler.removeCallbacks(detenerSiNoHayVoz)
+                silencioDetectado = false
+            } else if (!silencioDetectado) {
+                // Si no se detecta sonido, iniciamos temporizador de silencio
+                silencioDetectado = true
+                handler.postDelayed(detenerSiNoHayVoz, 5000)
+            }
+        }
+
+        override fun onBufferReceived(p0: ByteArray?) {
+        }
+
+        override fun onEndOfSpeech() {
+            Log.d("SpeechRecognizer", "Procesando...")
+        }
+
+        override fun onError(p0: Int) {
+            Log.d("SpeechRecognizer", "Error al escuchar")
+        }
+
+        override fun onResults(p0: Bundle?) {
+            val matches = p0?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+            speechText = matches?.firstOrNull() ?: "Intente nuevamente"
+        }
+
+        override fun onPartialResults(p0: Bundle?) {
+        }
+
+        override fun onEvent(p0: Int, p1: Bundle?) {
+        }
+
+    }
+
+    speechRecognizer.setRecognitionListener(recognizerListener)
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -203,6 +287,10 @@ fun Home(navController: NavController) {
                             .clickable {
                                 if (index == 0) {
                                     isDialogVisible = true // Muestra el diálogo al hacer clic en el primer Card
+                                }
+                                if(index == 2) {
+                                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                    isSpeechDialogVisible = true
                                 }
                             }
                     ) {
@@ -391,6 +479,28 @@ fun Home(navController: NavController) {
                 }
             }
         }
+        if(isSpeechDialogVisible) {
+            Dialog(onDismissRequest = { isSpeechDialogVisible = false }) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = speechText,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -472,11 +582,8 @@ fun FuncionalidadCard(
 @Composable
 fun MinimalDialog(
     text: String,
-    onTextChange: (String) -> Unit,
-    onDismissRequest: () -> Unit,
-    onConfirm: () -> Unit
 ) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
+    Dialog(onDismissRequest = { }) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -489,29 +596,14 @@ fun MinimalDialog(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Enter your text",
+                    text = text,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                TextField(
-                    value = text,
-                    onValueChange = { onTextChange(it) },
-                    placeholder = { Text("Type something...") },
-                    modifier = Modifier.fillMaxWidth()
-                )
                 Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    TextButton(onClick = { onDismissRequest() }) {
-                        Text("Cancel")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(onClick = { onConfirm() }) {
-                        Text("OK")
-                    }
-                }
             }
         }
     }
 }
+
+
+
