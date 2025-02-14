@@ -40,9 +40,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.ui.draw.clip
@@ -68,12 +70,15 @@ fun Home(navController: NavController) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var textInput by remember { mutableStateOf("") }
     val sharedPreferences = context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
+    val sharedPreferencesFonts = context.getSharedPreferences("MisPreferencias", Context.MODE_PRIVATE)
     var isDialogVisible by remember { mutableStateOf(false) }
     var isSpeechDialogVisible by remember { mutableStateOf(false) }
     var speechText by remember { mutableStateOf("") }
     val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
-    val handler = Handler(Looper.getMainLooper())
-    var silencioDetectado = false
+    val isListening = remember { mutableStateOf(false) }
+    var fontSize by remember {
+        mutableStateOf(sharedPreferencesFonts.getFloat("fontSize", 20f))
+    }
 
     val recognizerIntent = remember {
         Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -94,52 +99,48 @@ fun Home(navController: NavController) {
         }
     }
 
-     val detenerSiNoHayVoz = Runnable {
-        Log.d("Speech", "No hay voz detectada por 3s, deteniendo micrófono")
-        speechRecognizer.stopListening()
-    }
-
     val recognizerListener = object : RecognitionListener {
-        override fun onReadyForSpeech(p0: Bundle?) {
+        override fun onReadyForSpeech(params: Bundle?) {
             Log.d("SpeechRecognizer", "Listo para escuchar")
-            silencioDetectado = false
+            isListening.value = true
+            speechText = "Escuchando..."
         }
 
         override fun onBeginningOfSpeech() {
             Log.d("SpeechRecognizer", "Escuchando...")
-            silencioDetectado = false
-            handler.removeCallbacks(detenerSiNoHayVoz)
         }
 
         override fun onRmsChanged(p0: Float) {
-            if (p0 > 0.8) {
-                // Si se detecta sonido, reiniciamos el temporizador de silencio
-                handler.removeCallbacks(detenerSiNoHayVoz)
-                silencioDetectado = false
-            } else if (!silencioDetectado) {
-                // Si no se detecta sonido, iniciamos temporizador de silencio
-                silencioDetectado = true
-                handler.postDelayed(detenerSiNoHayVoz, 5000)
-            }
         }
 
         override fun onBufferReceived(p0: ByteArray?) {
         }
 
         override fun onEndOfSpeech() {
-            Log.d("SpeechRecognizer", "Procesando...")
+            Log.d("SpeechRecognizer", "Fin del discurso")
+            isListening.value = false
         }
 
-        override fun onError(p0: Int) {
-            Log.d("SpeechRecognizer", "Error al escuchar")
+        override fun onError(error: Int) {
+            Log.d("SpeechRecognizer", "Error al escuchar: $error")
+            isListening.value = false
+            speechText = "Error en el reconocimiento. Intente de nuevo."
         }
 
-        override fun onResults(p0: Bundle?) {
-            val matches = p0?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            speechText = matches?.firstOrNull() ?: "Intente nuevamente"
+        override fun onResults(results: Bundle?) {
+            val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+            if (!matches.isNullOrEmpty()) {
+                speechText = matches[0] // Captura el primer resultado
+            } else {
+                speechText = "No se detectó voz. Intente de nuevo."
+            }
         }
 
-        override fun onPartialResults(p0: Bundle?) {
+        override fun onPartialResults(partialResults: Bundle?) {
+            val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+            if (!matches.isNullOrEmpty()) {
+                speechText = matches[0] // Muestra el texto parcial mientras habla
+            }
         }
 
         override fun onEvent(p0: Int, p1: Bundle?) {
@@ -147,7 +148,9 @@ fun Home(navController: NavController) {
 
     }
 
-    speechRecognizer.setRecognitionListener(recognizerListener)
+    LaunchedEffect(speechRecognizer) {
+        speechRecognizer.setRecognitionListener(recognizerListener)
+    }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -158,6 +161,10 @@ fun Home(navController: NavController) {
         }
     )
 
+    fun saveFontSize(size: Float) {
+        sharedPreferences.edit().putFloat("fontSize", size).apply()
+    }
+
     // Función para guardar mensaje localmente
     fun guardarMensaje(context: Context, message: String) {
         val sharedPreferences: SharedPreferences =
@@ -166,7 +173,6 @@ fun Home(navController: NavController) {
     }
 
     val userNameState = remember { mutableStateOf("User") }
-
     // Obtener referencia a la base de datos
     val database = FirebaseDatabase.getInstance().reference
     val auth = FirebaseAuth.getInstance()
@@ -219,7 +225,7 @@ fun Home(navController: NavController) {
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically, // Centra verticalmente
-                horizontalArrangement = Arrangement.Start, // Alineación hacia la izquierda
+                horizontalArrangement = Arrangement.SpaceBetween, // Alineación hacia la izquierda
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
@@ -256,7 +262,55 @@ fun Home(navController: NavController) {
                     modifier = Modifier
                         .padding(start = 10.dp)
                 )
+
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentWidth()
+                ) {
+                    IconButton(
+                        onClick = {
+                            if (fontSize < 25f) {
+                                fontSize += 2f
+                                saveFontSize(fontSize)
+                            }
+                        },
+                        modifier = Modifier
+                            .size(48.dp) // Tamaño del botón
+                            .background(Color.White, CircleShape) // Fondo circular
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.aumentar_fuente),
+                            contentDescription = "Aumentar letra",
+                            modifier = Modifier.size(24.dp) // Tamaño del ícono
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp)) // Espacio entre botones
+
+                    IconButton(
+                        onClick = {
+                            if (fontSize > 15f) {
+                                fontSize -= 2f
+                                saveFontSize(fontSize)
+                            }
+                        },
+                        modifier = Modifier
+                            .size(48.dp) // Tamaño del botón
+                            .background(Color.White, CircleShape) // Fondo circular
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.disminuir_fuente),
+                            contentDescription = "Disminuir letra",
+                            modifier = Modifier.size(24.dp) // Tamaño del ícono
+                        )
+                    }
+                }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
         }
 
         Box(
@@ -330,7 +384,7 @@ fun Home(navController: NavController) {
                                     text = cardText,
                                     modifier = Modifier.align(Alignment.CenterHorizontally),
                                     color = Color.White,
-                                    fontSize = 20.sp,
+                                    fontSize = fontSize.sp,
                                     fontWeight = FontWeight.Bold
                                 )
 
@@ -355,20 +409,23 @@ fun Home(navController: NavController) {
             FuncionalidadCard(
                 title = "Reconocimiento de Texto (OCR)",
                 description = "Extrae texto de documentos como PDFs e imágenes para convertirlo en audio o texto accesible.",
-                imageResId = R.drawable.file,  // Agregar imagen relevante
-                onClick = {  }
+                imageResId = R.drawable.file,
+                fontSize = fontSize,
+                onClick = { }
             )
             FuncionalidadCard(
                 title = "Modificar Contraste Interfaz",
                 description = "Extrae texto de documentos como PDFs e imágenes para convertirlo en audio o texto accesible.",
-                imageResId = R.drawable.interfaz,  // Agregar imagen relevante
-                onClick = {  }
+                imageResId = R.drawable.interfaz,
+                fontSize = fontSize,
+                onClick = { }
             )
             FuncionalidadCard(
                 title = "Pedir Ayuda",
                 description = "Genera un sonido para solicitar ayuda",
                 imageResId = R.raw.help,
-                onClick = { /* Acción al hacer clic */ }
+                fontSize = fontSize,
+                onClick = { }
             )
             Spacer(modifier = Modifier.height(64.dp))
         }
@@ -441,6 +498,7 @@ fun Home(navController: NavController) {
                         Text(
                             text = "Ingrese texto",
                             style = MaterialTheme.typography.bodyLarge,
+                            fontSize = fontSize.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
                         )
@@ -494,6 +552,7 @@ fun Home(navController: NavController) {
                     ) {
                         Text(
                             text = speechText,
+                            fontSize = fontSize.sp,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -510,6 +569,7 @@ fun FuncionalidadCard(
     title: String,
     description: String,
     imageResId: Int,
+    fontSize: Float,
     onClick: () -> Unit
 ) {
     ElevatedCard(
@@ -565,12 +625,14 @@ fun FuncionalidadCard(
             ) {
                 Text(
                     text = title,
+                    fontSize = fontSize.sp,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = description,
+                    fontSize = (fontSize - 2).sp,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
