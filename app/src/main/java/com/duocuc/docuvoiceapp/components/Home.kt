@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -48,6 +49,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -79,6 +81,9 @@ fun Home(navController: NavController) {
     var fontSize by remember {
         mutableStateOf(sharedPreferencesFonts.getFloat("fontSize", 20f))
     }
+
+    val fileName = "profile_image.jpg"
+    var profileImage by remember { mutableStateOf<Bitmap?>(loadImageFromStorage(context, fileName)) }
 
     val recognizerIntent = remember {
         Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -230,15 +235,18 @@ fun Home(navController: NavController) {
                     .fillMaxWidth()
             ) {
                 // Imagen de perfil
-                if (imageUri != null) {
+                if (profileImage != null) {
                     Image(
-                        painter = rememberAsyncImagePainter(model = imageUri),
+                        bitmap = profileImage!!.asImageBitmap(),
                         contentDescription = "Imagen de perfil seleccionada",
                         modifier = Modifier
                             .size(55.dp)
                             .clip(CircleShape)
                             .background(Color.White)
-                            .clickable { launcher.launch("image/*") }
+                            .clickable {
+                                // Navegar al perfil para cambiar la foto
+                                navController.navigate("perfil")
+                            }
                     )
                 } else {
                     Image(
@@ -249,7 +257,10 @@ fun Home(navController: NavController) {
                             .clip(CircleShape)
                             .background(Color.White)
                             .padding(10.dp)
-                            .clickable { launcher.launch("image/*") }
+                            .clickable {
+                                // Navegar al perfil para cambiar la foto
+                                navController.navigate("perfil")
+                            }
                     )
                 }
 
@@ -315,14 +326,14 @@ fun Home(navController: NavController) {
 
         Box(
             modifier = Modifier
-                .align(Alignment.TopEnd)
+                .fillMaxWidth()
                 .background(Color.Transparent)
                 .zIndex(1f)
         ) {
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 50.dp)
+                    .padding(vertical = 16.dp, horizontal = 16.dp)
                     .offset(y = 100.dp)
 
             ) {
@@ -335,61 +346,56 @@ fun Home(navController: NavController) {
                     }
                     Card(
                         modifier = Modifier
-                            .width(300.dp)
-                            .height(220.dp)
+                            .width(300.dp) // Tamaño más manejable
                             .padding(8.dp)
                             .clickable {
                                 if (index == 0) {
-                                    isDialogVisible = true // Muestra el diálogo al hacer clic en el primer Card
+                                    isDialogVisible = true
                                 }
-                                if(index == 2) {
+                                if (index == 2) {
                                     permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                                     isSpeechDialogVisible = true
                                 }
-                            }
+                            },
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp) // Mejora visual
                     ) {
-                        Box(
+                        Column(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0xFF1F2024)) // Fondo solo en el área de contenido
+                                .fillMaxWidth()
+                                .background(Color(0xFF1F2024))
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(16.dp)  // Padding interno de la tarjeta
-                            ) {
-                                // Cargar una animación diferente para cada card
-                                val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(animationResId))
-                                val progress by rememberInfiniteTransition().animateFloat(
-                                    initialValue = 0f,
-                                    targetValue = 1f,
-                                    animationSpec = infiniteRepeatable(
-                                        animation = tween(durationMillis = 5000, easing = LinearEasing),
-                                        repeatMode = RepeatMode.Restart
-                                    )
+                            // Cargar animación Lottie
+                            val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(animationResId))
+                            val progress by rememberInfiniteTransition().animateFloat(
+                                initialValue = 0f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(durationMillis = 5000, easing = LinearEasing),
+                                    repeatMode = RepeatMode.Restart
                                 )
+                            )
 
-                                LottieAnimation(
-                                    composition = composition,
-                                    progress = { progress },
-                                    modifier = Modifier
-                                        .size(130.dp)
-                                        .align(Alignment.CenterHorizontally)
-                                )
+                            LottieAnimation(
+                                composition = composition,
+                                progress = { progress },
+                                modifier = Modifier.size(120.dp)
+                            )
 
-                                Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                                // Cambiar el texto dependiendo de la animación
-                                Text(
-                                    text = cardText,
-                                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                                    color = Color.White,
-                                    fontSize = fontSize.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                            Text(
+                                text = cardText,
+                                color = Color.White,
+                                fontSize = fontSize.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
 
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }
@@ -573,69 +579,72 @@ fun FuncionalidadCard(
     onClick: () -> Unit
 ) {
     ElevatedCard(
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable(onClick = onClick) // Permite que toda la tarjeta sea clickeable
+            .clickable(onClick = onClick)
     ) {
-        Row(
+        Column( // Ahora la tarjeta crece dinámicamente
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)  // Ajuste de padding para mejorar la presentación
+                .padding(16.dp)
         ) {
-            // Animación Lottie o imagen estática
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(5.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (imageResId in listOf(R.raw.text, R.raw.translation, R.raw.voice, R.raw.help)) {
-                    // Animación Lottie
-                    val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(imageResId))
-                    val progress by rememberInfiniteTransition().animateFloat(
-                        initialValue = 0f,
-                        targetValue = 1f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(durationMillis = 1500, easing = LinearEasing),
-                            repeatMode = RepeatMode.Restart
+                // Imagen o animación Lottie
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(5.dp)
+                ) {
+                    if (imageResId in listOf(R.raw.text, R.raw.translation, R.raw.voice, R.raw.help)) {
+                        val composition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(imageResId))
+                        val progress by rememberInfiniteTransition().animateFloat(
+                            initialValue = 0f,
+                            targetValue = 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(durationMillis = 1500, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart
+                            )
                         )
+                        LottieAnimation(
+                            composition = composition,
+                            progress = { progress },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = imageResId),
+                            contentDescription = title,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Contenedor del texto con peso para expandirse según el contenido
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    Text(
+                        text = title,
+                        fontSize = fontSize.sp,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Black
                     )
-                    LottieAnimation(
-                        composition = composition,
-                        progress = { progress },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    // Imagen estática
-                    Image(
-                        painter = painterResource(id = imageResId),
-                        contentDescription = title,
-                        modifier = Modifier.fillMaxSize()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = description,
+                        fontSize = (fontSize - 2).sp,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Texto de la tarjeta
-            Column(
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxHeight()
-            ) {
-                Text(
-                    text = title,
-                    fontSize = fontSize.sp,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = description,
-                    fontSize = (fontSize - 2).sp,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
             }
         }
     }

@@ -1,6 +1,16 @@
 package com.duocuc.docuvoiceapp.components
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,20 +26,47 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.docuvoiceapp.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 @Composable
 fun Perfil(navController: NavController) {
     var selectedTab by remember { mutableStateOf(2) }
     var showDialog by remember { mutableStateOf(false) }
 
-    // Obtener datos de usuario logeado
     val context = LocalContext.current
+    val activity = LocalContext.current as? Activity
+
+    val fileName = "profile_image.jpg"
+    var savedImage by remember { mutableStateOf<Bitmap?>(loadImageFromStorage(context, fileName)) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            savedImage = bitmap
+            saveImageToStorage(context, bitmap, fileName)
+            Toast.makeText(context, "Foto guardada localmente", Toast.LENGTH_SHORT).show()
+        }
+    }
+    var hasCameraPermission by remember { mutableStateOf(false) }
+    val permissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasCameraPermission = granted
+        if (!granted) {
+            Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
     val userNameState = remember { mutableStateOf("") }
     val userLastNameState = remember { mutableStateOf("") }
     val userEmailState = remember { mutableStateOf("") }
@@ -75,6 +112,13 @@ fun Perfil(navController: NavController) {
             .fillMaxSize()
             .background(Color(0xFFF5F5F5)) // Fondo claro
             .verticalScroll(rememberScrollState()) // Scroll general
+            .clickable {
+                if (hasCameraPermission) {
+                    launcher.launch()
+                } else {
+                    permissionsLauncher.launch(Manifest.permission.CAMERA)
+                }
+            }
     ) {
         Column(
             modifier = Modifier
@@ -87,12 +131,12 @@ fun Perfil(navController: NavController) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp), // Margen del encabezado
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
-                    onClick = { navController.popBackStack() }, // Navegar hacia atrás
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier.size(30.dp)
                 ) {
                     Icon(
@@ -108,7 +152,7 @@ fun Perfil(navController: NavController) {
                     fontSize = 30.sp
                 )
 
-                Spacer(modifier = Modifier.size(30.dp)) // Espaciador invisible
+                Spacer(modifier = Modifier.size(30.dp))
             }
 
             Spacer(modifier = Modifier.height(100.dp))
@@ -119,16 +163,29 @@ fun Perfil(navController: NavController) {
                     .size(150.dp)
                     .clip(CircleShape)
                     .background(Color.Gray)
-                    .align(Alignment.CenterHorizontally)
+                    .clickable {
+                        if (hasCameraPermission) {
+                            launcher.launch()
+                        } else {
+                            permissionsLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_user),
-                    contentDescription = "Foto de perfil",
-                    modifier = Modifier
-                        .size(80.dp)
-                        .align(Alignment.Center),
-                    tint = Color.White
-                )
+                if (savedImage != null) {
+                    Image(
+                        bitmap = savedImage!!.asImageBitmap(),
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier.fillMaxSize().clip(CircleShape)
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_user),
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier.size(80.dp),
+                        tint = Color.White
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -224,5 +281,34 @@ fun Perfil(navController: NavController) {
                 )
             }
         }
+    }
+}
+
+// Función para guardar la imagen localmente
+private fun saveImageToStorage(context: Context, bitmap: Bitmap, fileName: String) {
+    try {
+        val file = File(context.filesDir, fileName)
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+        Log.d("LocalStorage", "Imagen guardada en: ${file.absolutePath}")
+    } catch (e: IOException) {
+        Log.e("LocalStorage", "Error al guardar la imagen", e)
+    }
+}
+
+// Función para cargar la imagen localmente
+fun loadImageFromStorage(context: Context, fileName: String): Bitmap? {
+    return try {
+        val file = File(context.filesDir, fileName)
+        if (file.exists()) {
+            BitmapFactory.decodeFile(file.absolutePath)
+        } else {
+            null
+        }
+    } catch (e: Exception) {
+        Log.e("LocalStorage", "Error al cargar la imagen", e)
+        null
     }
 }
