@@ -1,10 +1,8 @@
 package com.duocuc.docuvoiceapp
 
 import RecuperarContrasenaForm
-import android.content.Context
 import android.os.Bundle
-import android.speech.SpeechRecognizer
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,11 +29,16 @@ import com.duocuc.docuvoiceapp.components.Menu
 import com.duocuc.docuvoiceapp.components.MisMensajes
 import com.duocuc.docuvoiceapp.components.Perfil
 import com.duocuc.docuvoiceapp.components.Registro
-import com.duocuc.docuvoiceapp.utils.UserManager
 import com.google.firebase.FirebaseApp
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var locationHelper: LocationHelper
+    private var currentCity by mutableStateOf<String?>("")
+    private lateinit var database: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,23 +57,22 @@ class MainActivity : ComponentActivity() {
 
             }
         }
-        // logRegisteredUsers(this)
-    }
-}
+        locationHelper = LocationHelper(this, this)
+        database = FirebaseDatabase.getInstance().getReference("ciudad")
 
-//private fun logRegisteredUsers(context: Context) {
-//    // Obtener la lista de usuarios desde UserManager
-//    val users = UserManager.getUsersFromPrefs(context)
-//
-//    // Verificar si hay usuarios y loguearlos
-//    if (users.isNotEmpty()) {
-//        users.forEach { user ->
-//            Log.d("MainActivity", "Usuario registrado: Email: ${user.email}, Nombre: ${user.firstName}, Apellido: ${user.lastName}, Password: ${user.password}")
-//        }
-//    } else {
-//        Log.d("MainActivity", "No hay usuarios registrados.")
-//    }
-//}
+        locationHelper.getCurrentCity { city ->
+            city?.let {
+                currentCity = it
+                Toast.makeText(this, "Ciudad actual: $it", Toast.LENGTH_LONG).show()
+            } ?: run {
+                Toast.makeText(this, "No se pudo obtener la ciudad actual", Toast.LENGTH_LONG).show()
+            }
+        }
+
+    }
+
+
+}
 
 
 @Preview(showBackground = true)

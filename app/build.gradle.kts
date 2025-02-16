@@ -68,6 +68,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.firebase.common.ktx)
     testImplementation(libs.junit)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
