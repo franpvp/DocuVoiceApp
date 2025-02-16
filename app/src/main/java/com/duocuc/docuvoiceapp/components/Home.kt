@@ -64,6 +64,8 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.duocuc.docuvoiceapp.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import android.speech.tts.TextToSpeech
+import java.util.Locale
 
 @Composable
 fun Home(navController: NavController) {
@@ -80,6 +82,25 @@ fun Home(navController: NavController) {
     val isListening = remember { mutableStateOf(false) }
     var fontSize by remember {
         mutableStateOf(sharedPreferencesFonts.getFloat("fontSize", 20f))
+    }
+    // Inicializar TextToSpeech
+    var textToSpeech by remember {
+        mutableStateOf<TextToSpeech?>(null)
+    }
+
+    LaunchedEffect(Unit) {
+        textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                textToSpeech?.language = Locale("es", "ES") // Configura el idioma a español
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            textToSpeech?.stop()
+            textToSpeech?.shutdown()
+        }
     }
 
     val fileName = "profile_image.jpg"
@@ -490,10 +511,10 @@ fun Home(navController: NavController) {
             Dialog(onDismissRequest = { isDialogVisible = false }) {
                 Box(
                     modifier = Modifier
-                        .size(500.dp)
+                        .size(300.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color.White)
-                        .padding(20.dp)
+                        .padding(30.dp)
                 ) {
 
                     Column(
@@ -501,13 +522,6 @@ fun Home(navController: NavController) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text(
-                            text = "Ingrese texto",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontSize = fontSize.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -521,7 +535,7 @@ fun Home(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Botón para confirmar
+                        // Botón para confirmar y reproducir texto
                         Button(
                             onClick = {
                                 // Guardar en SharedPreferences
@@ -531,11 +545,14 @@ fun Home(navController: NavController) {
                                 editor.putStringSet("mensajes", existingMessages)
                                 editor.apply()
 
+                                // Reproducir el texto ingresado
+                                textToSpeech?.speak(textInput, TextToSpeech.QUEUE_FLUSH, null, null)
+
                                 isDialogVisible = false
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Confirmar")
+                            Text("Reproducir")
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

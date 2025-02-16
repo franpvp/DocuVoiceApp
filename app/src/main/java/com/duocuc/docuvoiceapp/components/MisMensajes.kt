@@ -1,6 +1,7 @@
 package com.duocuc.docuvoiceapp.components
 
 import android.content.Context
+import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.background
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
@@ -26,6 +27,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.docuvoiceapp.R
+import java.util.Locale
 
 @Composable
 fun MisMensajes(navController: NavController) {
@@ -48,6 +52,27 @@ fun MisMensajes(navController: NavController) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
     val mensajesGuardados = sharedPreferences.getStringSet("mensajes", mutableSetOf())?.toList() ?: listOf()
+
+    // Inicializar TextToSpeech
+    var textToSpeech by remember {
+        mutableStateOf<TextToSpeech?>(null)
+    }
+
+    LaunchedEffect(Unit) {
+        textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                textToSpeech?.language = Locale("es", "ES") // Configura el idioma a español
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            textToSpeech?.stop()
+            textToSpeech?.shutdown()
+        }
+    }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Encabezado con el botón de retroceder y el título centrado
@@ -102,9 +127,11 @@ fun MisMensajes(navController: NavController) {
         ) {
             mensajesGuardados.forEachIndexed { index, mensaje ->
                 CardMensajes(
-                    title = "Mensaje $index",
+                    title = "Mensaje ${index + 1}",
                     description = mensaje,
-                    onClick = { }
+                    onClick = {
+                        textToSpeech?.speak(mensaje, TextToSpeech.QUEUE_FLUSH, null, null)
+                    }
                 )
             }
         }
