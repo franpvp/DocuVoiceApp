@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -209,7 +210,8 @@ fun Login(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp) // Padding horizontal
-                    .height(60.dp), // Ajusta la altura del botón
+                    .height(60.dp) // Ajusta la altura del botón
+                    .testTag("login_button"),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF0367A6), // Color de fondo
                     contentColor = Color.White // Color del texto o contenido
@@ -228,7 +230,8 @@ fun Login(
                 text = "¿No tienes cuenta? Regístrate",
                 modifier = Modifier
                     .clickable { onRegisterClick() }
-                    .padding(top = 8.dp),
+                    .padding(top = 8.dp)
+                    .testTag("registro"),
                 color = MaterialTheme.colorScheme.primary
             )
 
@@ -273,13 +276,14 @@ fun Login(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.9f)) // Más oscuro
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .testTag("loading_animation"),
                 contentAlignment = Alignment.Center
             ) {
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
-                    modifier = Modifier.size(150.dp)
+                    modifier = Modifier.size(150.dp),
                 )
             }
         }

@@ -40,19 +40,6 @@ fun Menu(navController: NavController) {
 
     // Contenedor principal
     Box(modifier = Modifier.fillMaxSize()) {
-        // Botón de volver en la esquina superior izquierda
-        IconButton(
-            onClick = { navController.popBackStack() },
-            modifier = Modifier
-                .padding(start = 20.dp, top = 40.dp)
-                .align(Alignment.TopStart)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_arrow_back),
-                contentDescription = "Volver",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
 
         Column(
             modifier = Modifier
@@ -154,10 +141,10 @@ fun Menu(navController: NavController) {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter) // Lo posiciona en la parte inferior del `Box` principal
-                .padding(horizontal = 6.dp) // Espaciado alrededor
-                .clip(RoundedCornerShape(24.dp)) // Bordes redondeados
+                //.padding(horizontal = 6.dp) // Espaciado alrededor
+                //.clip(RoundedCornerShape(24.dp)) // Bordes redondeados
                 .background(Color.Black)
-                .padding(vertical = 6.dp) // Espaciado interno del tab
+                //.padding(vertical = 6.dp) // Espaciado interno del tab
         ) {
             Row(
                 modifier = Modifier

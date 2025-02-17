@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.duocuc.docuvoiceapp.R
@@ -112,6 +113,7 @@ fun Perfil(navController: NavController) {
             .fillMaxSize()
             .background(Color(0xFFF5F5F5)) // Fondo claro
             .verticalScroll(rememberScrollState()) // Scroll general
+            .testTag("permission_request")
             .clickable {
                 if (hasCameraPermission) {
                     launcher.launch()
@@ -138,6 +140,7 @@ fun Perfil(navController: NavController) {
                 IconButton(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier.size(30.dp)
+                        .testTag("back_button")
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_arrow_back),
@@ -149,7 +152,8 @@ fun Perfil(navController: NavController) {
                 Text(
                     text = "Perfil",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontSize = 30.sp
+                    fontSize = 30.sp,
+                    modifier = Modifier.testTag("profile_title")
                 )
 
                 Spacer(modifier = Modifier.size(30.dp))
@@ -200,7 +204,10 @@ fun Perfil(navController: NavController) {
                     value = userNameState.value,
                     onValueChange = {},
                     label = { Text("Nombre") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("name_field"),
+
                     readOnly = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -208,7 +215,9 @@ fun Perfil(navController: NavController) {
                     value = userLastNameState.value,
                     onValueChange = {},
                     label = { Text("Apellido") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("last_name_field"),
                     readOnly = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -216,7 +225,9 @@ fun Perfil(navController: NavController) {
                     value = userEmailState.value,
                     onValueChange = {},
                     label = { Text("Correo electrónico") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("email_field"),
                     readOnly = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -224,64 +235,16 @@ fun Perfil(navController: NavController) {
                     value = fechaNacimientoState.value,
                     onValueChange = {},
                     label = { Text("Fecha de nacimiento") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("dob_field"),
                     readOnly = true
                 )
             }
         }
 
-        // Barra de navegación en la parte inferior
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 6.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color.Black)
-                .padding(vertical = 6.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(70.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_home),
-                    contentDescription = "Home",
-                    tint = if (selectedTab == 0) Color.White else Color.Gray,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable {
-                            selectedTab = 0
-                            navController.navigate("home")
-                        }
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_email),
-                    contentDescription = "Mensajes",
-                    tint = if (selectedTab == 1) Color.White else Color.Gray,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable {
-                            selectedTab = 1
-                            navController.navigate("mensajes")
-                        }
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_menu),
-                    contentDescription = "Menu",
-                    tint = if (selectedTab == 2) Color.White else Color.Gray,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable {
-                            selectedTab = 2
-                            navController.navigate("menu")
-                        }
-                )
-            }
-        }
     }
+
 }
 
 // Función para guardar la imagen localmente

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -51,7 +52,9 @@ fun MisMensajes(navController: NavController) {
     var selectedTab by remember { mutableIntStateOf(1) }
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
-    val mensajesGuardados = sharedPreferences.getStringSet("mensajes", mutableSetOf())?.toList() ?: listOf()
+    var mensajesGuardados by remember {
+        mutableStateOf(sharedPreferences.getStringSet("mensajes", mutableSetOf())?.toList() ?: listOf())
+    }
 
     // Inicializar TextToSpeech
     var textToSpeech by remember {
@@ -124,11 +127,26 @@ fun MisMensajes(navController: NavController) {
                 .fillMaxWidth()
                 .padding(top = 100.dp)
                 .verticalScroll(rememberScrollState())
+
         ) {
             mensajesGuardados.forEachIndexed { index, mensaje ->
                 CardMensajes(
                     title = "Mensaje ${index + 1}",
                     description = mensaje,
+                    onTextChange = { nuevoTexto ->
+                        val nuevaLista = mensajesGuardados.toMutableList()
+                        nuevaLista[index] = nuevoTexto
+                        mensajesGuardados = nuevaLista
+                        // Guardar cambios
+                        sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
+                    },
+                    onDelete = {
+                        val nuevaLista = mensajesGuardados.toMutableList()
+                        nuevaLista.removeAt(index)
+                        mensajesGuardados = nuevaLista
+                        // Guardar cambios
+                        sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
+                    },
                     onClick = {
                         textToSpeech?.speak(mensaje, TextToSpeech.QUEUE_FLUSH, null, null)
                     }
@@ -140,10 +158,10 @@ fun MisMensajes(navController: NavController) {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 6.dp)
-                .clip(RoundedCornerShape(24.dp))
+                //.padding(horizontal = 6.dp)
+                //.clip(RoundedCornerShape(24.dp))
                 .background(Color.Black)
-                .padding(vertical = 6.dp)
+                //.padding(vertical = 6.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -195,44 +213,69 @@ fun MisMensajes(navController: NavController) {
 fun CardMensajes(
     title: String,
     description: String,
+    onTextChange: (String) -> Unit,
+    onDelete: () -> Unit,
     onClick: () -> Unit
 ) {
+    var textoEditable by remember { mutableStateOf(description) }
+
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
+        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = Color(0xFF1F2024))
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp) // Ajuste de padding para mejorar la presentación
+            modifier = Modifier.fillMaxWidth().padding(20.dp)
         ) {
-            // Texto de la tarjeta
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(16.dp)) // Espaciado entre descripción y botón
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = Color.White
+                )
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.borrar),
+                        contentDescription = "Eliminar",
+                        tint = Color.Red
+                    )
+                }
+            }
 
-            // Botón centrado
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                    .padding(16.dp)
+            ) {
+                BasicTextField(
+                    value = textoEditable,
+                    onValueChange = { nuevoTexto ->
+                        textoEditable = nuevoTexto
+                        onTextChange(nuevoTexto) // Guardar cambios
+                    },
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Button(
                     onClick = onClick,
-                    modifier = Modifier
-                        .padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp)
                 ) {
-                    Text(text = "Ejecutar")
+                    Text(text = "Reproducir")
                 }
             }
         }

@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -268,7 +269,9 @@ fun Contacto(
                 LottieAnimation(
                     composition = composition,
                     progress = { progress },
-                    modifier = Modifier.size(1000.dp) // Ajusta el tamaño de la animación si es necesario
+                    modifier = Modifier
+                        .size(1000.dp) // Ajusta el tamaño de la animación si es necesario
+                        .testTag("LottieAnimation")
                 )
             }
         }

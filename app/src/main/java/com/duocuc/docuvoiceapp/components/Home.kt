@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -57,7 +58,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
@@ -83,6 +83,7 @@ fun Home(navController: NavController) {
     var fontSize by remember {
         mutableStateOf(sharedPreferencesFonts.getFloat("fontSize", 20f))
     }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     // Inicializar TextToSpeech
     var textToSpeech by remember {
         mutableStateOf<TextToSpeech?>(null)
@@ -191,6 +192,25 @@ fun Home(navController: NavController) {
         sharedPreferences.edit().putFloat("fontSize", size).apply()
     }
 
+    fun reproducirSonido() {
+        mediaPlayer?.let {
+            if (it.isPlaying) {
+                it.stop()   // Detiene la reproducción actual
+                it.reset()  // Reinicia el MediaPlayer
+            }
+            it.release() // Libera los recursos del MediaPlayer
+        }
+
+        mediaPlayer = MediaPlayer.create(context, R.raw.sonido_emergencia).apply {
+            setOnCompletionListener { mp ->
+                mp.release() // Libera el MediaPlayer cuando termina
+                mediaPlayer = null // Evita referencias innecesarias
+            }
+            start()
+        }
+    }
+
+
     // Función para guardar mensaje localmente
     fun guardarMensaje(context: Context, message: String) {
         val sharedPreferences: SharedPreferences =
@@ -198,7 +218,7 @@ fun Home(navController: NavController) {
         sharedPreferences.edit().putString("mensaje_guardado", message).apply()
     }
 
-    val userNameState = remember { mutableStateOf("User") }
+    val userNameState = remember { mutableStateOf("") }
     // Obtener referencia a la base de datos
     val database = FirebaseDatabase.getInstance().reference
     val auth = FirebaseAuth.getInstance()
@@ -452,18 +472,19 @@ fun Home(navController: NavController) {
                 description = "Genera un sonido para solicitar ayuda",
                 imageResId = R.raw.help,
                 fontSize = fontSize,
-                onClick = { }
+                onClick = { reproducirSonido() },
             )
             Spacer(modifier = Modifier.height(64.dp))
         }
         // Tab en la parte inferior
         Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .align(Alignment.BottomCenter) // Lo posiciona en la parte inferior del `Box` principal
-                .padding(horizontal = 6.dp) // Espaciado alrededor
-                .clip(RoundedCornerShape(24.dp)) // Bordes redondeados
+                //.padding(horizontal = 6.dp) // Espaciado alrededor
+                //.clip(RoundedCornerShape(24.dp)) // Bordes redondeados
                 .background(Color.Black)
-                .padding(vertical = 6.dp) // Espaciado interno del tab
+                //.padding(vertical = 6.dp) // Espaciado interno del tab
         ) {
             Row(
                 modifier = Modifier
@@ -600,7 +621,8 @@ fun FuncionalidadCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.elevatedCardColors(containerColor = Color(0xFF1F2024))
     ) {
         Column( // Ahora la tarjeta crece dinámicamente
             modifier = Modifier
@@ -608,8 +630,10 @@ fun FuncionalidadCard(
                 .padding(16.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
+
             ) {
                 // Imagen o animación Lottie
                 Box(
@@ -652,14 +676,14 @@ fun FuncionalidadCard(
                         text = title,
                         fontSize = fontSize.sp,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = Color.Black
+                        color = Color.White
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = description,
                         fontSize = (fontSize - 2).sp,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        color = Color.LightGray
                     )
                 }
             }
