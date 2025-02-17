@@ -8,8 +8,6 @@ import android.graphics.Bitmap
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -65,6 +63,10 @@ import com.duocuc.docuvoiceapp.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import android.speech.tts.TextToSpeech
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfReader
+import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor
+import java.io.InputStream
 import java.util.Locale
 
 @Composable
@@ -88,6 +90,8 @@ fun Home(navController: NavController) {
     var textToSpeech by remember {
         mutableStateOf<TextToSpeech?>(null)
     }
+    var pdfText by remember { mutableStateOf("") }
+    var isPdfDialogVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         textToSpeech = TextToSpeech(context) { status ->
@@ -179,11 +183,42 @@ fun Home(navController: NavController) {
         speechRecognizer.setRecognitionListener(recognizerListener)
     }
 
+    fun extractTextFromPdf(context: Context, uri: Uri): String? {
+        try {
+            val contentResolver = context.contentResolver
+            val inputStream: InputStream? = contentResolver.openInputStream(uri)
+
+            // Crea el PdfDocument con el inputStream
+            val pdfDocument = PdfDocument(PdfReader(inputStream))
+
+            val pdfText = StringBuilder()
+
+            // Recorre las páginas del PDF (usando pdfDocument.numberOfPages)
+            for (i in 1..pdfDocument.numberOfPages) {
+                val page = pdfDocument.getPage(i)
+                pdfText.append(PdfTextExtractor.getTextFromPage(page)).append("\n")
+            }
+
+            pdfDocument.close()
+
+            return pdfText.toString()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
             if (uri != null) {
-                imageUri = uri
+                val extractedText = extractTextFromPdf(context, uri)
+                if (extractedText != null) {
+                    pdfText = extractedText
+                    isPdfDialogVisible = true // Mostrar el texto extraído en un Dialog
+                } else {
+                    Toast.makeText(context, "No se pudo extraer el texto del PDF", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     )
@@ -192,23 +227,26 @@ fun Home(navController: NavController) {
         sharedPreferences.edit().putFloat("fontSize", size).apply()
     }
 
-    fun reproducirSonido() {
-        mediaPlayer?.let {
-            if (it.isPlaying) {
-                it.stop()   // Detiene la reproducción actual
-                it.reset()  // Reinicia el MediaPlayer
+    fun reproducirSonido(context: Context) {
+        if (mediaPlayer?.isPlaying == true) {
+            // Si el sonido está reproduciéndose, detenerlo
+            mediaPlayer?.stop()
+            mediaPlayer?.reset()
+            mediaPlayer?.release()
+            mediaPlayer = null
+        } else {
+            // Si el sonido no se está reproduciendo, iniciarlo
+            mediaPlayer = MediaPlayer.create(context, R.raw.sonido_emergencia).apply {
+                setOnCompletionListener { mp ->
+                    mp.release()  // Libera el MediaPlayer cuando termina
+                    mediaPlayer = null // Evita referencias innecesarias
+                }
+                start()
             }
-            it.release() // Libera los recursos del MediaPlayer
-        }
-
-        mediaPlayer = MediaPlayer.create(context, R.raw.sonido_emergencia).apply {
-            setOnCompletionListener { mp ->
-                mp.release() // Libera el MediaPlayer cuando termina
-                mediaPlayer = null // Evita referencias innecesarias
-            }
-            start()
         }
     }
+
+
 
 
     // Función para guardar mensaje localmente
@@ -299,7 +337,6 @@ fun Home(navController: NavController) {
                             .background(Color.White)
                             .padding(10.dp)
                             .clickable {
-                                // Navegar al perfil para cambiar la foto
                                 navController.navigate("perfil")
                             }
                     )
@@ -458,11 +495,11 @@ fun Home(navController: NavController) {
                 description = "Extrae texto de documentos como PDFs e imágenes para convertirlo en audio o texto accesible.",
                 imageResId = R.drawable.file,
                 fontSize = fontSize,
-                onClick = { }
+                onClick = { launcher.launch("application/pdf") } // Abre el selector de archivo PDF
             )
             FuncionalidadCard(
                 title = "Modificar Contraste Interfaz",
-                description = "Extrae texto de documentos como PDFs e imágenes para convertirlo en audio o texto accesible.",
+                description = "Cambiar contraste",
                 imageResId = R.drawable.interfaz,
                 fontSize = fontSize,
                 onClick = { }
@@ -472,9 +509,40 @@ fun Home(navController: NavController) {
                 description = "Genera un sonido para solicitar ayuda",
                 imageResId = R.raw.help,
                 fontSize = fontSize,
-                onClick = { reproducirSonido() },
+                onClick = { reproducirSonido(context) },
             )
             Spacer(modifier = Modifier.height(64.dp))
+        }
+        if (isPdfDialogVisible) {
+            Dialog(onDismissRequest = { isPdfDialogVisible = false }) {
+                Box(
+                    modifier = Modifier
+                        .size(300.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .padding(16.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = pdfText,
+                            modifier = Modifier.fillMaxWidth(),
+                            fontSize = fontSize.sp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                textToSpeech?.speak(pdfText, TextToSpeech.QUEUE_FLUSH, null, null) // Reproducir texto en audio
+                                isPdfDialogVisible = false // Cerrar el Dialog
+                            }
+                        ) {
+                            Text("Leer en voz alta")
+                        }
+                    }
+                }
+            }
         }
         // Tab en la parte inferior
         Box(

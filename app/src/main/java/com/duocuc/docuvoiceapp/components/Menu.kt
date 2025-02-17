@@ -1,5 +1,7 @@
 package com.duocuc.docuvoiceapp.components
 
+import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,18 +26,47 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.duocuc.docuvoiceapp.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 @Composable
 fun Menu(navController: NavController) {
+    val context = LocalContext.current
     var selectedTab by remember { mutableStateOf(2) }
     var showDialog by remember { mutableStateOf(false) } // Estado para mostrar el pop-up
-
+    val userNameState = remember { mutableStateOf("") }
     val handleLogout = {
         FirebaseAuth.getInstance().signOut()
         navController.navigate("login")
+    }
+    val fileName = "profile_image.jpg"
+    var profileImage by remember { mutableStateOf<Bitmap?>(loadImageFromStorage(context, fileName)) }
+
+    val database = FirebaseDatabase.getInstance().reference
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+
+    LaunchedEffect(Unit) {
+        currentUser?.uid?.let { uid ->
+            database.child("usuarios").child(uid).child("nombre")
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    val nombre = snapshot.value as? String
+                    if (nombre != null) {
+                        userNameState.value = nombre
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(context, "Error al obtener el nombre", Toast.LENGTH_SHORT).show()
+                }
+        }
     }
 
     // Contenedor principal
@@ -56,26 +87,47 @@ fun Menu(navController: NavController) {
                     .padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_user),
-                    contentDescription = "Foto de Perfil",
-                    modifier = Modifier
-                        .size(170.dp)
-                        .clip(CircleShape) // Recorta la imagen en forma circular
-                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) // Borde suave
-                        .shadow(4.dp, CircleShape) // Sombra suave
-                        .background(MaterialTheme.colorScheme.secondary, shape = CircleShape) // Fondo circular
-                        .padding(40.dp)
-                )
+                // Imagen de perfil
+                if (profileImage != null) {
+                    Image(
+                        bitmap = profileImage!!.asImageBitmap(),
+                        contentDescription = "Imagen de perfil seleccionada",
+                        modifier = Modifier
+                            .size(200.dp)
+                            .clip(CircleShape)
+                            .border(3.dp, Color.Gray, CircleShape)
+                            .background(Color.White)
+                            .clickable {
+                                // Navegar al perfil para cambiar la foto
+                                navController.navigate("perfil")
+                            }
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_user),
+                        contentDescription = "Imagen de perfil predeterminada",
+                        modifier = Modifier
+                            .size(55.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .padding(10.dp)
+                            .clickable {
+                                navController.navigate("perfil")
+                            }
+                    )
+                }
             }
             Text(
-                text = "Nombre de usuario test",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
+                text = userNameState.value,
+                style = TextStyle(
+                    fontSize = 28.sp, // Ajusta el tamaño según lo necesites
+                    fontWeight = FontWeight.Bold, // Opcional: aumentar el grosor
+                    color = MaterialTheme.colorScheme.onBackground
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center // Centrar el texto
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(70.dp))
@@ -124,10 +176,16 @@ fun Menu(navController: NavController) {
                     )
                 }
 
+                Spacer(modifier = Modifier.height(30.dp))
+
                 // Botón para cerrar sesión que muestra el pop-up
                 Button(
                     onClick = { showDialog = true },
-                    modifier = buttonModifier
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD32F2F), // Color de fondo
+                        contentColor = Color.White  // Color del texto
+                    )
                 ) {
                     Text(
                         text = "Cerrar Sesión",
@@ -185,7 +243,6 @@ fun Menu(navController: NavController) {
                         }
                 )
             }
-
         }
 
         // Pop-up para confirmar el cierre de sesión

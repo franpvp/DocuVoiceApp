@@ -1,5 +1,7 @@
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -9,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -17,6 +20,7 @@ import com.duocuc.docuvoiceapp.utils.UserManager
 import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecuperarContrasenaForm(
     navController: NavController
@@ -55,7 +59,7 @@ fun RecuperarContrasenaForm(
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
-                .padding(start = 8.dp)
+                .padding(start = 8.dp, top = 15.dp)
                 .align(Alignment.TopStart) // Posicionar en la esquina superior izquierda
         ) {
             Icon(
@@ -75,15 +79,16 @@ fun RecuperarContrasenaForm(
                 text = "Recuperar Contraseña",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
+                    fontSize = 32.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
             )
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(80.dp))
 
             Text(
                 text = "Ingresa tu correo electrónico.",
-                fontSize = 20.sp,
+                fontSize = 18.sp,
+                textAlign = TextAlign.Start,
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -96,12 +101,28 @@ fun RecuperarContrasenaForm(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("email_field"), // Añadir un testTag aquí
+                leadingIcon = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 25.dp, end = 16.dp) // Padding a la izquierda del ícono
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_email),
+                            contentDescription = null,
+                            tint = Color(0xFF0367A6)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp)) // Mueve el texto un poco a la derecha
+                    }
+                },
                 singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                shape = RoundedCornerShape(30.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0367A6), // Borde transparente cuando está enfocado
+                    unfocusedBorderColor = Color.Gray, // Borde transparente cuando no está en foco
+                    disabledBorderColor = Color.Gray, // Borde transparente si está deshabilitado
+                    errorBorderColor = Color.Red, // Borde transparente si hay error
+                    cursorColor = Color(0xFF0367A6), // Color del cursor
+
                 )
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -109,20 +130,16 @@ fun RecuperarContrasenaForm(
             // Botón de Enviar
             Button(
                 onClick = {
-                    // Aquí se validará el correo ingresado
-//                    if (UserManager.getUsersFromPrefs(context).any { it.email == email }) {
-//                        // Si el correo existe, redirigir a la pantalla para cambiar la contraseña
-//                        navController.navigate("changePassword/$email")
-//                    } else {
-//                        errorMessage = "Correo no registrado"
-//                    }
                     enviarCodigo()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp) // Altura personalizada
+                    .height(80.dp)
                     .padding(top = 20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0367A6), // Color de fondo
+                    contentColor = Color.White
+                )
             ) {
                 Text(
                     "Confirmar",

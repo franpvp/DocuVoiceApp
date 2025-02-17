@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -164,9 +165,9 @@ fun Perfil(navController: NavController) {
             // Foto de perfil
             Box(
                 modifier = Modifier
-                    .size(150.dp)
+                    .size(200.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray)
+                    .border(3.dp, Color.Gray, CircleShape)
                     .clickable {
                         if (hasCameraPermission) {
                             launcher.launch()

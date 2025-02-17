@@ -85,7 +85,7 @@ dependencies {
     androidTestImplementation ("org.mockito:mockito-android:4.3.1")
     testImplementation ("org.robolectric:robolectric:4.9")
     testImplementation ("androidx.test:core:1.4.0")
-
+    implementation ("com.itextpdf:itext7-core:7.2.2")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
