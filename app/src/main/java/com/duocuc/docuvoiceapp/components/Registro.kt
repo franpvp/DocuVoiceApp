@@ -2,8 +2,10 @@ package com.duocuc.docuvoiceapp.components
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -12,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -56,6 +59,7 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
     } ?: ""
 
     val context = LocalContext.current
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
     LaunchedEffect(selectedDate) {
         if (selectedDate.isNotEmpty()) {
@@ -109,43 +113,127 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
             Spacer(modifier = Modifier.height(80.dp))
 
             // Campos de entrada con validación
-            InputField(
+            OutlinedTextField(
                 value = nombre.value,
-                onValueChange = { nombre.value = it },
-                label = "Nombre",
-                modifier = Modifier.fillMaxWidth(),
-                isError = nombreError.value
+                onValueChange = {
+                    nombre.value = it
+                    nombreError.value = false // Limpiar error al cambiar el valor
+                },
+                label = { Text("Nombre", color = Color.Gray) },
+                placeholder = { Text("Ingresa tu nombre", color = Color.LightGray) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(30.dp)) // Bordes redondeados
+                    .padding(10.dp),
+                keyboardOptions = KeyboardOptions.Default,
+                leadingIcon = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 25.dp, end = 16.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_user), // Usa un ícono de usuario
+                            contentDescription = null,
+                            tint = Color(0xFF0367A6)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                },
+                isError = nombreError.value, // Mostrar error si hay problema
+                shape = RoundedCornerShape(30.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0367A6),
+                    unfocusedBorderColor = Color.Gray,
+                    disabledBorderColor = Color.Gray,
+                    errorBorderColor = Color.Red,
+                    cursorColor = Color(0xFF0367A6)
+                )
             )
-            InputField(
+            OutlinedTextField(
                 value = apellido.value,
-                onValueChange = { apellido.value = it },
-                label = "Apellido",
-                modifier = Modifier.fillMaxWidth(),
-                isError = apellidoError.value
+                onValueChange = {
+                    apellido.value = it
+                    apellidoError.value = false // Limpiar error al cambiar el valor
+                },
+                label = { Text("Apellido", color = Color.Gray) },
+                placeholder = { Text("Ingresa tu apellido", color = Color.LightGray) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(30.dp)) // Bordes redondeados
+                    .padding(10.dp),
+                keyboardOptions = KeyboardOptions.Default,
+                leadingIcon = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 25.dp, end = 16.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_user), // Ícono de usuario, usa uno adecuado si lo tienes
+                            contentDescription = null,
+                            tint = Color(0xFF0367A6)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                },
+                isError = apellidoError.value, // Mostrar error si hay problema
+                shape = RoundedCornerShape(30.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0367A6),
+                    unfocusedBorderColor = Color.Gray,
+                    disabledBorderColor = Color.Gray,
+                    errorBorderColor = Color.Red,
+                    cursorColor = Color(0xFF0367A6)
+                )
             )
 
             // Validación de correo electrónico
-            InputField(
+            OutlinedTextField(
                 value = correo.value,
                 onValueChange = {
                     correo.value = it
-                    correoError.value = !isValidEmail(it)
+                    correoError.value = !isValidEmail(it) // Validación en tiempo real
                 },
-                label = "Correo electrónico",
-                modifier = Modifier.fillMaxWidth(),
-                isError = correoError.value
-            )
-            if (correoError.value) {
-                Text(
-                    text = "Correo inválido",
-                    color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.align(Alignment.Start)
+                label = { Text("Correo electrónico", color = Color.Gray) },
+                placeholder = { Text("ejemplo@correo.com", color = Color.LightGray) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(30.dp)) // Bordes redondeados
+                    .padding(10.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), // Teclado de email
+                leadingIcon = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 25.dp, end = 16.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_email), // Ícono de email
+                            contentDescription = null,
+                            tint = Color(0xFF0367A6)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                },
+                isError = correoError.value, // Mostrar error si el email es inválido
+                shape = RoundedCornerShape(30.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0367A6),
+                    unfocusedBorderColor = Color.Gray,
+                    disabledBorderColor = Color.Gray,
+                    errorBorderColor = Color.Red,
+                    cursorColor = Color(0xFF0367A6)
                 )
-            }
+            )
+//            if (correoError.value) {
+//                Text(
+//                    text = "Correo inválido",
+//                    color = Color.Red,
+//                    style = MaterialTheme.typography.bodySmall,
+//                    modifier = Modifier.align(Alignment.Start)
+//                )
+//            }
 
             // Validación celular (solo números)
-            InputField(
+            OutlinedTextField(
                 value = celular.value,
                 onValueChange = {
                     // Asegura que solo se ingresen números y no más de 9 dígitos
@@ -154,40 +242,43 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
                     }
                     celularError.value = celular.value.isEmpty() || celular.value.length != 9
                 },
-                label = "Celular",
-                modifier = Modifier.fillMaxWidth(),
-                isError = celularError.value,
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-            )
-
-            // Campo de Fecha de Nacimiento
-            OutlinedTextField(
-                value = selectedDate,
-                onValueChange = { },
-                label = { Text("Fecha de Nacimiento") },
-                readOnly = true,
-                trailingIcon = {
-                    IconButton(onClick = { showDatePicker = !showDatePicker }) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = "Select date"
-                        )
-                    }
-                },
+                label = { Text("Celular", color = Color.Gray) },
+                placeholder = { Text("Ingresa tu celular", color = Color.LightGray) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .background(MaterialTheme.colorScheme.surface),
-                colors = TextFieldDefaults.textFieldColors(
-                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                    unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface
+                    .clip(RoundedCornerShape(30.dp)) // Bordes redondeados
+                    .padding(10.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number), // Teclado numérico
+                leadingIcon = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 25.dp, end = 16.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.llamar), // Ícono de teléfono
+                            contentDescription = null,
+                            tint = Color(0xFF0367A6),
+                            modifier = Modifier.size(24.dp) // Ajusta el tamaño del ícono aquí
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                },
+                isError = celularError.value, // Mostrar error si el celular es inválido
+                shape = RoundedCornerShape(30.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0367A6),
+                    unfocusedBorderColor = Color.Gray,
+                    disabledBorderColor = Color.Gray,
+                    errorBorderColor = Color.Red,
+                    cursorColor = Color(0xFF0367A6)
                 )
             )
 
-            // Dialog de selección de fecha
-            if (showDatePicker) {
-                DatePickerDialog(datePickerState, onDismiss = { showDatePicker = false })
-            }
+            // Campo de Fecha de Nacimiento
+            FechaNacimientoInput(
+                selectedDate = fechaNacimiento.value,
+                onDateSelected = { selectedDate -> fechaNacimiento.value = selectedDate }
+            )
 
             // Contraseña y Confirmar Contraseña
             PasswordField(
@@ -236,8 +327,17 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
                         // Registrar usuario en Firebase
                         AuthService(context).registerUser(correo.value, contrasena.value, usuario) { success, message ->
                             if (success) {
-                                // Registro exitoso
-                                onRegisterSuccess()
+                                // Autenticación automática después del registro
+                                AuthService(context).signInUser(correo.value, contrasena.value) { signInSuccess, signInMessage ->
+                                    if (signInSuccess) {
+                                        // Si el inicio de sesión es exitoso, redirigir al home
+                                        onRegisterSuccess() // Puedes utilizar esto para otras acciones si es necesario
+                                        navController.navigate("home")  // Reemplaza "home_route" con el nombre real de tu ruta
+                                    } else {
+                                        // Mostrar mensaje de error de autenticación si falla el inicio de sesión
+                                        Toast.makeText(context, "Error al iniciar sesión: ${signInMessage ?: "Error desconocido"}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                             } else {
                                 // Mostrar mensaje de error
                                 Toast.makeText(context, "Error: ${message ?: "Error desconocido"}", Toast.LENGTH_SHORT).show()
@@ -292,7 +392,7 @@ fun InputField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerDialog(datePickerState: DatePickerState, onDismiss: () -> Unit) {
+fun DatePickerDialog(datePickerState: DatePickerState, onDismiss: () -> Unit, onDateSelected: (String) -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
@@ -314,7 +414,13 @@ fun DatePickerDialog(datePickerState: DatePickerState, onDismiss: () -> Unit) {
                 // Botón de confirmación
                 Button(
                     onClick = {
-                        onDismiss()
+                        val selectedMillis = datePickerState.selectedDateMillis
+                        if (selectedMillis != null) {
+                            val selectedDateFormatted = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                .format(Date(selectedMillis))
+                            onDateSelected(selectedDateFormatted) // Pasa la fecha seleccionada al input
+                        }
+                        onDismiss() // Cierra el DatePickerDialog
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -334,11 +440,30 @@ fun PasswordField(
     showPassword: Boolean,
     onTogglePasswordVisibility: () -> Unit
 ) {
-    TextField(
+    OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { Text(label, color = Color.Gray) },
+        placeholder = { Text("Ingresa tu contraseña", color = Color.LightGray) },
         visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(30.dp)) // Bordes redondeados
+            .padding(10.dp),
+        leadingIcon = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 25.dp, end = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_lock), // Ícono de candado
+                    contentDescription = null,
+                    tint = Color(0xFF0367A6),
+                    modifier = Modifier.size(24.dp) // Ajusta el tamaño del ícono aquí
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+        },
         trailingIcon = {
             IconButton(onClick = onTogglePasswordVisibility) {
                 Icon(
@@ -349,14 +474,63 @@ fun PasswordField(
                 )
             }
         },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        colors = TextFieldDefaults.textFieldColors(
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface
+        shape = RoundedCornerShape(30.dp),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color(0xFF0367A6),
+            unfocusedBorderColor = Color.Gray,
+            disabledBorderColor = Color.Gray,
+            errorBorderColor = Color.Red,
+            cursorColor = Color(0xFF0367A6)
         )
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FechaNacimientoInput(
+    selectedDate: String,
+    onDateSelected: (String) -> Unit
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+
+    OutlinedTextField(
+        value = selectedDate,
+        onValueChange = { },
+        label = { Text("Fecha de Nacimiento", color = Color.Gray) },
+        readOnly = true,
+        trailingIcon = {
+            IconButton(onClick = { showDatePicker = true }) {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = "Seleccionar fecha",
+                    tint = Color(0xFF0367A6) // Color azul para coherencia con el diseño
+                )
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(30.dp))
+            .padding(10.dp)
+            .clickable { showDatePicker = true },
+        shape = RoundedCornerShape(30.dp),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color(0xFF0367A6),
+            unfocusedBorderColor = Color.Gray,
+            disabledBorderColor = Color.Gray,
+            errorBorderColor = Color.Red,
+            cursorColor = Color(0xFF0367A6)
+        )
+    )
+
+    // Mostrar el DatePicker Dialog
+    if (showDatePicker) {
+        DatePickerDialog(
+            datePickerState = datePickerState,
+            onDismiss = { showDatePicker = false },
+            onDateSelected = { selectedDateFormatted -> onDateSelected(selectedDateFormatted) }
+        )
+    }
 }
 
 fun convertMillisToDate(millis: Long): String {

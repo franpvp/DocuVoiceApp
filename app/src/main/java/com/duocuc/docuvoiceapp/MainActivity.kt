@@ -70,8 +70,6 @@ class MainActivity : ComponentActivity() {
         }
 
     }
-
-
 }
 
 
@@ -82,7 +80,7 @@ fun MyApp() {
 
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = "login"
     ) {
         composable("login") {
             Login(

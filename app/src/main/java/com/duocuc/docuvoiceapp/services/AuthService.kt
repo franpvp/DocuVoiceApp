@@ -35,6 +35,18 @@ class AuthService(private val context: Context) {
             }
     }
 
+    fun signInUser(email: String, password: String, callback: (Boolean, String?) -> Unit) {
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(true, null)
+                } else {
+                    val errorMessage = task.exception?.message ?: "Error desconocido"
+                    callback(false, errorMessage)
+                }
+            }
+    }
+
     // Obtener usuario actual
     fun obtenerUsuarioById(): String? {
         return auth.currentUser?.uid
