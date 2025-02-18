@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -129,29 +130,45 @@ fun MisMensajes(navController: NavController) {
                 .verticalScroll(rememberScrollState())
 
         ) {
-            mensajesGuardados.forEachIndexed { index, mensaje ->
-                CardMensajes(
-                    title = "Mensaje ${index + 1}",
-                    description = mensaje,
-                    onTextChange = { nuevoTexto ->
-                        val nuevaLista = mensajesGuardados.toMutableList()
-                        nuevaLista[index] = nuevoTexto
-                        mensajesGuardados = nuevaLista
-                        // Guardar cambios
-                        sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
-                    },
-                    onDelete = {
-                        val nuevaLista = mensajesGuardados.toMutableList()
-                        nuevaLista.removeAt(index)
-                        mensajesGuardados = nuevaLista
-                        // Guardar cambios
-                        sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
-                    },
-                    onClick = {
-                        textToSpeech?.speak(mensaje, TextToSpeech.QUEUE_FLUSH, null, null)
-                    }
-                )
+            if (mensajesGuardados.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentSize(Alignment.Center)
+                ) {
+                    Text(
+                        text = "No hay mensajes",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 24.sp), // Tamaño de texto más grande
+                        modifier = Modifier.padding(16.dp),
+                        color = Color.Gray
+                    )
+                }
+            } else {
+                mensajesGuardados.forEachIndexed { index, mensaje ->
+                    CardMensajes(
+                        title = "Mensaje ${index + 1}",
+                        description = mensaje,
+                        onTextChange = { nuevoTexto ->
+                            val nuevaLista = mensajesGuardados.toMutableList()
+                            nuevaLista[index] = nuevoTexto
+                            mensajesGuardados = nuevaLista
+                            // Guardar cambios
+                            sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
+                        },
+                        onDelete = {
+                            val nuevaLista = mensajesGuardados.toMutableList()
+                            nuevaLista.removeAt(index)
+                            mensajesGuardados = nuevaLista
+                            // Guardar cambios
+                            sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
+                        },
+                        onClick = {
+                            textToSpeech?.speak(mensaje, TextToSpeech.QUEUE_FLUSH, null, null)
+                        }
+                    )
+                }
             }
+
         }
 
         // Tab en la parte inferior

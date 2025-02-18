@@ -327,19 +327,15 @@ fun Registro(onRegisterSuccess: () -> Unit, navController: NavController) {
                         // Registrar usuario en Firebase
                         AuthService(context).registerUser(correo.value, contrasena.value, usuario) { success, message ->
                             if (success) {
-                                // Autenticación automática después del registro
                                 AuthService(context).signInUser(correo.value, contrasena.value) { signInSuccess, signInMessage ->
                                     if (signInSuccess) {
-                                        // Si el inicio de sesión es exitoso, redirigir al home
-                                        onRegisterSuccess() // Puedes utilizar esto para otras acciones si es necesario
-                                        navController.navigate("home")  // Reemplaza "home_route" con el nombre real de tu ruta
+                                        onRegisterSuccess()
+                                        navController.navigate("home")
                                     } else {
-                                        // Mostrar mensaje de error de autenticación si falla el inicio de sesión
                                         Toast.makeText(context, "Error al iniciar sesión: ${signInMessage ?: "Error desconocido"}", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             } else {
-                                // Mostrar mensaje de error
                                 Toast.makeText(context, "Error: ${message ?: "Error desconocido"}", Toast.LENGTH_SHORT).show()
                             }
                         }

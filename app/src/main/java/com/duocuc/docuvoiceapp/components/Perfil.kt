@@ -73,6 +73,7 @@ fun Perfil(navController: NavController) {
     val userLastNameState = remember { mutableStateOf("") }
     val userEmailState = remember { mutableStateOf("") }
     val fechaNacimientoState = remember { mutableStateOf("") }
+    var isEditable by remember { mutableStateOf(false) }
 
     // Obtener referencia a la base de datos
     val database = FirebaseDatabase.getInstance().reference
@@ -203,28 +204,28 @@ fun Perfil(navController: NavController) {
             ) {
                 OutlinedTextField(
                     value = userNameState.value,
-                    onValueChange = {},
+                    onValueChange = { if (isEditable) userNameState.value = it },
                     label = { Text("Nombre") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("name_field"),
 
-                    readOnly = true
+                    readOnly = !isEditable
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = userLastNameState.value,
-                    onValueChange = {},
+                    onValueChange = { if (isEditable) userLastNameState.value = it },
                     label = { Text("Apellido") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("last_name_field"),
-                    readOnly = true
+                    readOnly = !isEditable
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = userEmailState.value,
-                    onValueChange = {},
+                    onValueChange = { if (isEditable) userEmailState.value = it },
                     label = { Text("Correo electrónico") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -234,14 +235,116 @@ fun Perfil(navController: NavController) {
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = fechaNacimientoState.value,
-                    onValueChange = {},
+                    onValueChange = { if (isEditable) fechaNacimientoState.value = it },
                     label = { Text("Fecha de nacimiento") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("dob_field"),
-                    readOnly = true
+                    readOnly = !isEditable
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+            if (isEditable) {
+                Button(
+                    onClick = {
+                        // Guardar cambios en la base de datos de Firebase
+                        currentUser?.uid?.let { uid ->
+                            val updatedUser = mapOf(
+                                "nombre" to userNameState.value,
+                                "apellido" to userLastNameState.value,
+                                "fechaNacimiento" to fechaNacimientoState.value
+                            )
+                            database.child("usuarios").child(uid)
+                                .updateChildren(updatedUser)
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(context, "Error al actualizar el perfil", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(text = "Guardar cambios")
+                }
+            }
+
+            // Botón para habilitar la edición
+            if (!isEditable) {
+                Button(
+                    onClick = { isEditable = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(text = "Editar")
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter) // Lo posiciona en la parte inferior del `Box` principal
+                //.padding(horizontal = 6.dp) // Espaciado alrededor
+                //.clip(RoundedCornerShape(24.dp)) // Bordes redondeados
+                .background(Color.Black)
+            //.padding(vertical = 6.dp) // Espaciado interno del tab
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.dp), // Altura fija para garantizar consistencia
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically // Centra los íconos verticalmente
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_home),
+                    contentDescription = "Home",
+                    tint = if (selectedTab == 0) Color.White else Color.Gray,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable { selectedTab = 0
+                            navController.navigate("home")}
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_email),
+                    contentDescription = "Mensajes",
+                    tint = if (selectedTab == 1) Color.White else Color.Gray,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable {
+                            selectedTab = 1
+                            navController.navigate("mensajes")
+                        }
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_menu),
+                    contentDescription = "Menu",
+                    tint = if (selectedTab == 2) Color.White else Color.Gray,
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clickable {
+                            selectedTab = 2
+                            navController.navigate("menu")
+                        }
+                )
+            }
+
         }
 
     }

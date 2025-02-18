@@ -133,41 +133,106 @@ fun Contacto(
             Spacer(modifier = Modifier.height(100.dp))
 
             // Campos del formulario
+//            OutlinedTextField(
+//                value = name,
+//                onValueChange = { name = it },
+//                label = { Text("Nombre") },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(bottom = 16.dp),
+//                isError = name.isEmpty() && submissionError.value
+//            )
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Nombre") },
+                label = { Text("Nombre", color = Color.Gray) },
+                placeholder = { Text("Ingresa tu nombre", color = Color.LightGray) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                isError = name.isEmpty() && submissionError.value
+                    .clip(RoundedCornerShape(30.dp)) // Bordes redondeados
+                    .padding(10.dp),
+                keyboardOptions = KeyboardOptions.Default,
+                isError = name.isEmpty() && submissionError.value,
+                shape = RoundedCornerShape(30.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0367A6),
+                    unfocusedBorderColor = Color.Gray,
+                    disabledBorderColor = Color.Gray,
+                    errorBorderColor = Color.Red,
+                    cursorColor = Color(0xFF0367A6)
+                )
             )
+
+//            OutlinedTextField(
+//                value = email,
+//                onValueChange = { email = it },
+//                label = { Text("Correo Electrónico") },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(bottom = 16.dp),
+//                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+//                keyboardActions = KeyboardActions(onNext = { /* Acción Next */ }),
+//                isError = email.isEmpty() && submissionError.value
+//            )
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo Electrónico") },
+                label = { Text("Correo Electrónico", color = Color.Gray) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { /* Acción Next */ }),
-                isError = email.isEmpty() && submissionError.value
+                    .clip(RoundedCornerShape(30.dp)) // Bordes redondeados
+                    .padding(10.dp),
+                keyboardOptions = KeyboardOptions.Default,
+                isError = email.isEmpty() && submissionError.value,
+                shape = RoundedCornerShape(30.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0367A6),
+                    unfocusedBorderColor = Color.Gray,
+                    disabledBorderColor = Color.Gray,
+                    errorBorderColor = Color.Red,
+                    cursorColor = Color(0xFF0367A6)
+                )
             )
+
+//            OutlinedTextField(
+//                value = message,
+//                onValueChange = { message = it },
+//                label = { Text("Mensaje") },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(150.dp)
+//                    .padding(bottom = 24.dp),
+//                maxLines = 5,
+//                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+//                keyboardActions = KeyboardActions(onDone = { /* Acción Done */ }),
+//                isError = message.isEmpty() && submissionError.value
+//            )
 
             OutlinedTextField(
                 value = message,
                 onValueChange = { message = it },
-                label = { Text("Mensaje") },
+                label = { Text("Mensaje", color = Color.Gray) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
-                    .padding(bottom = 24.dp),
-                maxLines = 5,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { /* Acción Done */ }),
-                isError = message.isEmpty() && submissionError.value
+                    .clip(RoundedCornerShape(30.dp)) // Bordes redondeados
+                    .padding(10.dp),
+                keyboardOptions = KeyboardOptions.Default,
+                isError = message.isEmpty() && submissionError.value,
+                shape = RoundedCornerShape(30.dp),
+                maxLines = 5, // Número máximo de líneas visibles
+                minLines = 3, // Número mínimo de líneas visibles
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF0367A6),
+                    unfocusedBorderColor = Color.Gray,
+                    disabledBorderColor = Color.Gray,
+                    errorBorderColor = Color.Red,
+                    cursorColor = Color(0xFF0367A6)
+                )
             )
+
+            Spacer(Modifier.height(30.dp))
 
             Button(
                 onClick = {
@@ -207,18 +272,19 @@ fun Contacto(
 
         Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 6.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter) // Lo posiciona en la parte inferior del `Box` principal
+                //.padding(horizontal = 6.dp) // Espaciado alrededor
+                //.clip(RoundedCornerShape(24.dp)) // Bordes redondeados
                 .background(Color.Black)
-                .padding(vertical = 6.dp)
+            //.padding(vertical = 6.dp) // Espaciado interno del tab
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(70.dp),
+                    .height(70.dp), // Altura fija para garantizar consistencia
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically // Centra los íconos verticalmente
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_home),
@@ -226,10 +292,8 @@ fun Contacto(
                     tint = if (selectedTab == 0) Color.White else Color.Gray,
                     modifier = Modifier
                         .size(30.dp)
-                        .clickable {
-                            selectedTab = 0
-                            navController.navigate("home")
-                        }
+                        .clickable { selectedTab = 0
+                            navController.navigate("home")}
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.ic_email),
@@ -254,6 +318,7 @@ fun Contacto(
                         }
                 )
             }
+
         }
 
         // Animación de Lottie mientras se envía
