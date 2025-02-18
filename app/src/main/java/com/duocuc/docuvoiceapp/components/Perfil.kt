@@ -116,13 +116,7 @@ fun Perfil(navController: NavController) {
             .background(Color(0xFFF5F5F5)) // Fondo claro
             .verticalScroll(rememberScrollState()) // Scroll general
             .testTag("permission_request")
-            .clickable {
-                if (hasCameraPermission) {
-                    launcher.launch()
-                } else {
-                    permissionsLauncher.launch(Manifest.permission.CAMERA)
-                }
-            }
+
     ) {
         Column(
             modifier = Modifier

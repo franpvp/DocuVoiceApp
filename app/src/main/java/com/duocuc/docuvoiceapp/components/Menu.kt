@@ -107,7 +107,7 @@ fun Menu(navController: NavController) {
                         painter = painterResource(id = R.drawable.ic_user),
                         contentDescription = "Imagen de perfil predeterminada",
                         modifier = Modifier
-                            .size(55.dp)
+                            .size(200.dp)
                             .clip(CircleShape)
                             .background(Color.White)
                             .padding(10.dp)
