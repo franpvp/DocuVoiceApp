@@ -23,20 +23,9 @@ class AuthService(private val context: Context) {
             }
     }
 
-    // Iniciar sesión
-    fun loginUser(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    onResult(true, null)
-                } else {
-                    onResult(false, task.exception?.message)
-                }
-            }
-    }
 
     fun signInUser(email: String, password: String, callback: (Boolean, String?) -> Unit) {
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     callback(true, null)
@@ -47,10 +36,6 @@ class AuthService(private val context: Context) {
             }
     }
 
-    // Obtener usuario actual
-    fun obtenerUsuarioById(): String? {
-        return auth.currentUser?.uid
-    }
 
     // Cerrar sesión
     fun logoutUser() {

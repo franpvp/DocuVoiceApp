@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.duocuc.docuvoiceapp.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.duocuc.docuvoiceapp.services.AuthService
 
 @Composable
 fun Menu(navController: NavController) {
@@ -43,7 +44,7 @@ fun Menu(navController: NavController) {
     var showDialog by remember { mutableStateOf(false) } // Estado para mostrar el pop-up
     val userNameState = remember { mutableStateOf("") }
     val handleLogout = {
-        FirebaseAuth.getInstance().signOut()
+        AuthService(context).logoutUser()
         navController.navigate("login")
     }
     val fileName = "profile_image.jpg"
@@ -70,7 +71,9 @@ fun Menu(navController: NavController) {
     }
 
     // Contenedor principal
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(Color.Black)) {
 
         Column(
             modifier = Modifier
@@ -96,9 +99,8 @@ fun Menu(navController: NavController) {
                             .size(200.dp)
                             .clip(CircleShape)
                             .border(3.dp, Color.Gray, CircleShape)
-                            .background(Color.White)
+                            .background(Color.Transparent)
                             .clickable {
-                                // Navegar al perfil para cambiar la foto
                                 navController.navigate("perfil")
                             }
                     )
@@ -120,9 +122,9 @@ fun Menu(navController: NavController) {
             Text(
                 text = userNameState.value,
                 style = TextStyle(
-                    fontSize = 28.sp, // Ajusta el tamaño según lo necesites
-                    fontWeight = FontWeight.Bold, // Opcional: aumentar el grosor
-                    color = MaterialTheme.colorScheme.onBackground
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.inverseOnSurface
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,7 +136,9 @@ fun Menu(navController: NavController) {
 
             // Opciones del menú centradas
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(25.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Opciones del menú como botones
@@ -142,12 +146,21 @@ fun Menu(navController: NavController) {
                     .fillMaxWidth()
                     .padding(bottom = 25.dp)
                     .height(60.dp)
+                    .border(2.dp, Color.White, CircleShape)
 
                 Button(
                     onClick = {
                         navController.navigate("perfil")
                     },
-                    modifier = buttonModifier
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp)
+                        .height(60.dp)
+                        .border(1.dp, Color.White, CircleShape),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent, // Color de fondo
+                        contentColor = Color.White  // Color del texto
+                    )
 
                 ) {
                     Text(
@@ -159,7 +172,15 @@ fun Menu(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate("forgotPassword") },
-                    modifier = buttonModifier
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp)
+                        .height(60.dp)
+                        .border(1.dp, Color.White, CircleShape),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent, // Color de fondo
+                        contentColor = Color.White  // Color del texto
+                    )
                 ) {
                     Text(
                         text = "Cambio de Contraseña",
@@ -169,7 +190,15 @@ fun Menu(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate("contacto") },
-                    modifier = buttonModifier
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp)
+                        .height(60.dp)
+                        .border(1.dp, Color.White, CircleShape),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent, // Color de fondo
+                        contentColor = Color.White  // Color del texto
+                    )
                 ) {
                     Text(text = "Contacto",
                         fontSize = 20.sp,
@@ -181,10 +210,12 @@ fun Menu(navController: NavController) {
                 // Botón para cerrar sesión que muestra el pop-up
                 Button(
                     onClick = { showDialog = true },
-                    modifier = buttonModifier,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp)
+                        .height(60.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD32F2F), // Color de fondo
-                        contentColor = Color.White  // Color del texto
+                        containerColor = Color(0xFFD32F2F) // Color de fondo
                     )
                 ) {
                     Text(

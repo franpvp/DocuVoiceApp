@@ -86,6 +86,7 @@ dependencies {
     testImplementation ("org.robolectric:robolectric:4.9")
     testImplementation ("androidx.test:core:1.4.0")
     implementation ("com.itextpdf:itext7-core:7.2.2")
+    implementation ("com.google.mlkit:translate:16.0.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

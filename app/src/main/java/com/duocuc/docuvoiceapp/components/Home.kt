@@ -67,9 +67,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import com.google.mlkit.nl.translate.TranslateLanguage
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfReader
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor
+import com.google.mlkit.nl.translate.Translator
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
+import kotlinx.coroutines.tasks.await
 import java.io.InputStream
 import java.util.Locale
 
@@ -98,10 +103,14 @@ fun Home(navController: NavController) {
     }
     var pdfText by remember { mutableStateOf("") }
     var isPdfDialogVisible by remember { mutableStateOf(false) }
+    var isPdfDialogVisibleTranslation by remember { mutableStateOf(false) }
+    var isTranslationInProgress by remember { mutableStateOf(false) }
 
     var isHighContrast by remember { mutableStateOf(false) }
     val originalBackgroundColor = Color(0xFF13678A)
     val highContrastBackgroundColor = Color(0xFF000000)
+    var displayedText by remember { mutableStateOf("") }
+    var isPdfSelected by remember { mutableStateOf(false) }
 
     // Establecer el esquema de colores en función del estado isHighContrast
     val colors = if (isHighContrast) {
@@ -181,31 +190,6 @@ fun Home(navController: NavController) {
         speechRecognizer.setRecognitionListener(recognizerListener)
     }
 
-    fun extractTextFromPdf(context: Context, uri: Uri): String? {
-        try {
-            val contentResolver = context.contentResolver
-            val inputStream: InputStream? = contentResolver.openInputStream(uri)
-
-            // Crea el PdfDocument con el inputStream
-            val pdfDocument = PdfDocument(PdfReader(inputStream))
-
-            val pdfText = StringBuilder()
-
-            // Recorre las páginas del PDF (usando pdfDocument.numberOfPages)
-            for (i in 1..pdfDocument.numberOfPages) {
-                val page = pdfDocument.getPage(i)
-                pdfText.append(PdfTextExtractor.getTextFromPage(page)).append("\n")
-            }
-
-            pdfDocument.close()
-
-            return pdfText.toString()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
-        }
-    }
-
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
@@ -213,13 +197,30 @@ fun Home(navController: NavController) {
                 val extractedText = extractTextFromPdf(context, uri)
                 if (extractedText != null) {
                     pdfText = extractedText
-                    isPdfDialogVisible = true // Mostrar el texto extraído en un Dialog
+                    isPdfDialogVisible = true;
                 } else {
                     Toast.makeText(context, "No se pudo extraer el texto del PDF", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     )
+
+    val translateLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { _ ->
+            if (pdfText.isNotEmpty()) {
+                // Traducir el texto extraído
+                translateTextToEnglish(context, pdfText) { translatedText ->
+                    // Actualizar el texto traducido y mostrar el diálogo con la traducción
+                    displayedText = translatedText
+                    isPdfDialogVisibleTranslation = true // Mostrar el diálogo con el texto traducido
+                }
+            } else {
+                Toast.makeText(context, "No hay texto para traducir", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
 
     fun saveFontSize(size: Float) {
         sharedPreferences.edit().putFloat("fontSize", size).apply()
@@ -245,11 +246,11 @@ fun Home(navController: NavController) {
     }
 
     // Función para guardar mensaje localmente
-    fun guardarMensaje(context: Context, message: String) {
-        val sharedPreferences: SharedPreferences =
-            context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit().putString("mensaje_guardado", message).apply()
-    }
+//    fun guardarMensaje(context: Context, message: String) {
+//        val sharedPreferences: SharedPreferences =
+//            context.getSharedPreferences("MisMensajesPrefs", Context.MODE_PRIVATE)
+//        sharedPreferences.edit().putString("mensaje_guardado", message).apply()
+//    }
 
     val userNameState = remember { mutableStateOf("") }
     // Obtener referencia a la base de datos
@@ -286,8 +287,6 @@ fun Home(navController: NavController) {
             textToSpeech?.shutdown()
         }
     }
-
-
 
     MaterialTheme(colorScheme = colors) {
         Box(modifier = Modifier
@@ -444,6 +443,10 @@ fun Home(navController: NavController) {
                                         permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                                         isSpeechDialogVisible = true
                                     }
+                                    if (index == 2 && !isPdfSelected) {
+                                        translateLauncher.launch("application/pdf")
+
+                                    }
                                 },
                             shape = RoundedCornerShape(16.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp) // Mejora visual
@@ -501,11 +504,12 @@ fun Home(navController: NavController) {
 
                 // Tarjetas con funcionalidades
                 FuncionalidadCard(
-                    title = "Reconocimiento de Texto (OCR)",
+                    title = "Reconocimiento de Texto",
                     description = "Extrae texto de documentos como PDFs e imágenes para convertirlo en audio o texto accesible.",
                     imageResId = R.drawable.file,
                     fontSize = fontSize,
-                    onClick = { launcher.launch("application/pdf") } // Abre el selector de archivo PDF
+                    onClick = { launcher.launch("application/pdf") }
+                    // Abre el selector de archivo PDF
                 )
                 FuncionalidadCard(
                     title = "Modificar Contraste Interfaz",
@@ -553,8 +557,8 @@ fun Home(navController: NavController) {
 
                             Button(
                                 onClick = {
-                                    textToSpeech?.speak(pdfText, TextToSpeech.QUEUE_FLUSH, null, null) // Reproducir texto en audio
-                                    // Aquí no se cierra el Dialog
+                                    textToSpeech?.speak(pdfText, TextToSpeech.QUEUE_FLUSH, null, null)
+
                                 },
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             ) {
@@ -563,6 +567,53 @@ fun Home(navController: NavController) {
                                     contentDescription = "Reproducir",
                                     tint = MaterialTheme.colorScheme.tertiaryContainer
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+            if (isPdfDialogVisibleTranslation) {
+                Dialog(onDismissRequest = { isPdfDialogVisibleTranslation = false }) {
+                    Box(
+                        modifier = Modifier
+                            .size(300.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White)
+                            .padding(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            // Mostrar el texto que se tiene (ya sea extraído o traducido)
+                            Text(
+                                text = if (isTranslationInProgress) "Traduciendo..." else pdfText,  // Mostrar texto extraído o un mensaje temporal mientras se traduce
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 50.dp), // Añadir padding para separar el texto del botón
+                                fontSize = fontSize.sp
+                            )
+
+                            // Espaciador para empujar el botón a la parte inferior
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Button(
+                                onClick = {
+                                    if (!isTranslationInProgress) {
+                                        // Iniciar el proceso de traducción
+                                        isTranslationInProgress = true // Indicar que la traducción está en proceso
+                                        translateTextToEnglish(context, pdfText) { translatedText ->
+                                            // Actualizar el texto con la traducción en el mismo diálogo
+                                            displayedText = translatedText
+                                            pdfText = translatedText // Actualizar el texto original para que se muestre la traducción
+                                            isTranslationInProgress = false // Terminar el proceso de traducción
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+                                Text("Traducir") // Cambiar el texto del botón a "Traducir"
                             }
                         }
                     }
@@ -617,7 +668,6 @@ fun Home(navController: NavController) {
                             }
                     )
                 }
-
             }
             // Diálogo
             if (isDialogVisible) {
@@ -648,7 +698,7 @@ fun Home(navController: NavController) {
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Botón para confirmar y reproducir texto
+                            // Botón para reproducir texto
                             Button(
                                 onClick = {
                                     // Guardar en SharedPreferences
@@ -657,17 +707,13 @@ fun Home(navController: NavController) {
                                     existingMessages.add(textInput)
                                     editor.putStringSet("mensajes", existingMessages)
                                     editor.apply()
-
                                     // Reproducir el texto ingresado
                                     textToSpeech?.speak(textInput, TextToSpeech.QUEUE_FLUSH, null, null)
-
-                                    isDialogVisible = false
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("Reproducir")
                             }
-
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
@@ -698,22 +744,63 @@ fun Home(navController: NavController) {
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
+
+fun translateTextToEnglish(context: Context, text: String, onTranslationComplete: (String) -> Unit) {
+    // Crear el traductor
+    val options = TranslatorOptions.Builder()
+        .setSourceLanguage(TranslateLanguage.SPANISH)
+        .setTargetLanguage(TranslateLanguage.ENGLISH)
+        .build()
+
+    val translator = Translation.getClient(options)
+
+    // Asegurarse de que el modelo esté descargado antes de traducir
+    translator.downloadModelIfNeeded()
+        .addOnSuccessListener {
+            // El modelo se ha descargado correctamente, proceder con la traducción
+            translator.translate(text)
+                .addOnSuccessListener { translatedText ->
+                    // Pasar el texto traducido a la función de callback
+                    onTranslationComplete(translatedText)
+                }
+                .addOnFailureListener { exception ->
+                    // Manejo de errores
+                    Toast.makeText(context, "Error en la traducción: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
+        .addOnFailureListener { exception ->
+            // Manejo de errores si no se puede descargar el modelo
+            Toast.makeText(context, "Error al descargar el modelo: ${exception.message}", Toast.LENGTH_SHORT).show()
+        }
+}
+
+// Función para extrar texto de PDF
+fun extractTextFromPdf(context: Context, uri: Uri): String? {
+    try {
+        val contentResolver = context.contentResolver
+        val inputStream: InputStream? = contentResolver.openInputStream(uri)
+
+        // Crea el PdfDocument con el inputStream
+        val pdfDocument = PdfDocument(PdfReader(inputStream))
+
+        val pdfText = StringBuilder()
+
+        // Recorre las páginas del PDF (usando pdfDocument.numberOfPages)
+        for (i in 1..pdfDocument.numberOfPages) {
+            val page = pdfDocument.getPage(i)
+            pdfText.append(PdfTextExtractor.getTextFromPage(page)).append("\n")
+        }
+        pdfDocument.close()
+
+        return pdfText.toString()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return null
+    }
+}
+
+
 
 // Composable para la tarjeta de funcionalidad con imagen
 @Composable
@@ -794,32 +881,6 @@ fun FuncionalidadCard(
                         color = Color.LightGray
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun MinimalDialog(
-    text: String,
-) {
-    Dialog(onDismissRequest = { }) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = text,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
