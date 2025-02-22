@@ -112,11 +112,8 @@ fun Perfil(navController: NavController) {
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5)) // Fondo claro
-            .verticalScroll(rememberScrollState()) // Scroll general
-            .testTag("permission_request")
-
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center // Centrar verticalmente
     ) {
         Column(
             modifier = Modifier
@@ -155,7 +152,6 @@ fun Perfil(navController: NavController) {
                 Spacer(modifier = Modifier.size(30.dp))
             }
 
-            Spacer(modifier = Modifier.height(100.dp))
 
             // Foto de perfil
             Box(

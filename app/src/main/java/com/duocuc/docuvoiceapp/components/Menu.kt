@@ -26,8 +26,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,54 +73,36 @@ fun Menu(navController: NavController) {
     }
 
     // Contenedor principal
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.Black)) {
-
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-                .align(Alignment.Center),
-            verticalArrangement = Arrangement.Center
+                .verticalScroll(rememberScrollState()), // Permite desplazamiento si es necesario
+            verticalArrangement = Arrangement.Center, // Centra los elementos dentro de la Column
+            horizontalAlignment = Alignment.CenterHorizontally // Centra el contenido horizontalmente
         ) {
             // Foto de perfil centrada
-            Row(
+            Image(
+                bitmap = profileImage?.asImageBitmap() ?: ImageBitmap.imageResource(R.drawable.ic_user),
+                contentDescription = "Imagen de perfil",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                // Imagen de perfil
-                if (profileImage != null) {
-                    Image(
-                        bitmap = profileImage!!.asImageBitmap(),
-                        contentDescription = "Imagen de perfil seleccionada",
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(CircleShape)
-                            .border(3.dp, Color.Gray, CircleShape)
-                            .background(Color.Transparent)
-                            .clickable {
-                                navController.navigate("perfil")
-                            }
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_user),
-                        contentDescription = "Imagen de perfil predeterminada",
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .padding(10.dp)
-                            .clickable {
-                                navController.navigate("perfil")
-                            }
-                    )
-                }
-            }
+                    .size(200.dp)
+                    .clip(CircleShape)
+                    .border(3.dp, Color.Gray, CircleShape)
+                    .background(Color.Transparent)
+                    .clickable {
+                        navController.navigate("perfil")
+                    }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text(
                 text = userNameState.value,
                 style = TextStyle(
@@ -126,102 +110,77 @@ fun Menu(navController: NavController) {
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.inverseOnSurface
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(70.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             // Opciones del menú centradas
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(25.dp),
+                    .padding(horizontal = 25.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Opciones del menú como botones
-                val buttonModifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 25.dp)
-                    .height(60.dp)
-                    .border(2.dp, Color.White, CircleShape)
-
                 Button(
-                    onClick = {
-                        navController.navigate("perfil")
-                    },
+                    onClick = { navController.navigate("perfil") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 25.dp)
                         .height(60.dp)
                         .border(1.dp, Color.White, CircleShape),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent, // Color de fondo
-                        contentColor = Color.White  // Color del texto
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White
                     )
-
                 ) {
-                    Text(
-                        text = "Mi Perfil",
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
+                    Text("Mi Perfil", fontSize = 20.sp)
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = { navController.navigate("forgotPassword") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 25.dp)
                         .height(60.dp)
                         .border(1.dp, Color.White, CircleShape),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent, // Color de fondo
-                        contentColor = Color.White  // Color del texto
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White
                     )
                 ) {
-                    Text(
-                        text = "Cambio de Contraseña",
-                        fontSize = 20.sp,
-                    )
+                    Text("Cambio de Contraseña", fontSize = 20.sp)
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = { navController.navigate("contacto") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 25.dp)
                         .height(60.dp)
                         .border(1.dp, Color.White, CircleShape),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent, // Color de fondo
-                        contentColor = Color.White  // Color del texto
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White
                     )
                 ) {
-                    Text(text = "Contacto",
-                        fontSize = 20.sp,
-                    )
+                    Text("Contacto", fontSize = 20.sp)
                 }
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                // Botón para cerrar sesión que muestra el pop-up
+                // Botón para cerrar sesión
                 Button(
                     onClick = { showDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 25.dp)
                         .height(60.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD32F2F) // Color de fondo
+                        containerColor = Color(0xFFD32F2F) // Color rojo
                     )
                 ) {
-                    Text(
-                        text = "Cerrar Sesión",
-                        fontSize = 20.sp
-                    )
+                    Text("Cerrar Sesión", fontSize = 20.sp)
                 }
             }
         }

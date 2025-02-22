@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -40,7 +41,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -129,7 +132,6 @@ fun MisMensajes(navController: NavController) {
                 .fillMaxWidth()
                 .padding(top = 100.dp)
                 .verticalScroll(rememberScrollState())
-
         ) {
             if (mensajesGuardados.isEmpty()) {
                 Box(
@@ -139,37 +141,47 @@ fun MisMensajes(navController: NavController) {
                 ) {
                     Text(
                         text = "No hay mensajes",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 24.sp), // Tamaño de texto más grande
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 24.sp),
                         modifier = Modifier.padding(16.dp),
                         color = Color.Gray
                     )
                 }
             } else {
                 mensajesGuardados.forEachIndexed { index, mensaje ->
-                    key(mensaje) { // Usa `key` para mantener la relación correcta
+                    key(mensaje) { // Usamos `key` para asegurar que cada mensaje se maneje correctamente
                         CardMensajes(
                             title = "Mensaje ${index + 1}",
                             description = mensaje,
                             onTextChange = { nuevoTexto ->
+                                // Actualizamos la lista cuando el texto cambia
                                 val nuevaLista = mensajesGuardados.toMutableList()
                                 nuevaLista[index] = nuevoTexto
                                 mensajesGuardados = nuevaLista
-                                sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
+                                sharedPreferences.edit()
+                                    .putStringSet("mensajes", nuevaLista.toSet())
+                                    .apply()
                             },
                             onDelete = {
+                                // Eliminamos el mensaje correcto
                                 val nuevaLista = mensajesGuardados.toMutableList()
                                 nuevaLista.removeAt(index)
                                 mensajesGuardados = nuevaLista
-                                sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
+                                sharedPreferences.edit()
+                                    .putStringSet("mensajes", nuevaLista.toSet())
+                                    .apply()
                             },
                             onClick = {
-                                textToSpeech?.speak(mensaje, TextToSpeech.QUEUE_FLUSH, null, null)
+                                // Reproducimos el mensaje correspondiente
+                                textToSpeech?.speak(mensajesGuardados[index], TextToSpeech.QUEUE_FLUSH, null, null)
                             }
                         )
+                        // Añadir un espacio después del último mensaje
+                        if (index == mensajesGuardados.lastIndex) {
+                            Spacer(modifier = Modifier.height(70.dp))  // Ajusta el tamaño según sea necesario
+                        }
                     }
                 }
             }
-
         }
 
         // Tab en la parte inferior
@@ -226,7 +238,6 @@ fun MisMensajes(navController: NavController) {
     }
 }
 
-
 @Composable
 fun CardMensajes(
     title: String,
@@ -236,14 +247,27 @@ fun CardMensajes(
     onClick: () -> Unit
 ) {
     var textoEditable by remember { mutableStateOf(description) }
+    var ultimaVersionGuardada by remember { mutableStateOf(description) }
+
+    // Guarda solo cuando el usuario termina de escribir (evita bloquear la edición)
+    LaunchedEffect(textoEditable) {
+        if (textoEditable != ultimaVersionGuardada) {
+            ultimaVersionGuardada = textoEditable
+            onTextChange(textoEditable) // Guarda cambios sin interrumpir la edición
+        }
+    }
 
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color(0xFF1F2024))
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(20.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -275,8 +299,7 @@ fun CardMensajes(
                 BasicTextField(
                     value = textoEditable,
                     onValueChange = { nuevoTexto ->
-                        textoEditable = nuevoTexto
-                        onTextChange(nuevoTexto) // Guardar cambios
+                        textoEditable = nuevoTexto // Permite escribir sin bloqueos
                     },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
                     modifier = Modifier.fillMaxWidth()

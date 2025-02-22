@@ -502,9 +502,8 @@ fun Home(navController: NavController) {
                     .fillMaxWidth()
                     .background(Color.Transparent)
                     .verticalScroll(rememberScrollState())
-                    .zIndex(-1f)
             ) {
-                Spacer(modifier = Modifier.height(400.dp))
+                Spacer(modifier = Modifier.height(350.dp))
 
                 // Tarjetas con funcionalidades
                 FuncionalidadCard(
@@ -627,11 +626,9 @@ fun Home(navController: NavController) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter) // Lo posiciona en la parte inferior del `Box` principal
-                    //.padding(horizontal = 6.dp) // Espaciado alrededor
-                    //.clip(RoundedCornerShape(24.dp)) // Bordes redondeados
+                    .align(Alignment.BottomCenter)
                     .background(Color.Black)
-                //.padding(vertical = 6.dp) // Espaciado interno del tab
+                    .zIndex(3f)
             ) {
                 Row(
                     modifier = Modifier
@@ -823,10 +820,11 @@ fun FuncionalidadCard(
             .clickable(onClick = onClick),
         colors = CardDefaults.elevatedCardColors(containerColor = Color(0xFF1F2024))
     ) {
-        Column( // Ahora la tarjeta crece dinámicamente
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .zIndex(1f)
         ) {
             Row(
                 modifier = Modifier
