@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -145,27 +146,27 @@ fun MisMensajes(navController: NavController) {
                 }
             } else {
                 mensajesGuardados.forEachIndexed { index, mensaje ->
-                    CardMensajes(
-                        title = "Mensaje ${index + 1}",
-                        description = mensaje,
-                        onTextChange = { nuevoTexto ->
-                            val nuevaLista = mensajesGuardados.toMutableList()
-                            nuevaLista[index] = nuevoTexto
-                            mensajesGuardados = nuevaLista
-                            // Guardar cambios
-                            sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
-                        },
-                        onDelete = {
-                            val nuevaLista = mensajesGuardados.toMutableList()
-                            nuevaLista.removeAt(index)
-                            mensajesGuardados = nuevaLista
-                            // Guardar cambios
-                            sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
-                        },
-                        onClick = {
-                            textToSpeech?.speak(mensaje, TextToSpeech.QUEUE_FLUSH, null, null)
-                        }
-                    )
+                    key(mensaje) { // Usa `key` para mantener la relación correcta
+                        CardMensajes(
+                            title = "Mensaje ${index + 1}",
+                            description = mensaje,
+                            onTextChange = { nuevoTexto ->
+                                val nuevaLista = mensajesGuardados.toMutableList()
+                                nuevaLista[index] = nuevoTexto
+                                mensajesGuardados = nuevaLista
+                                sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
+                            },
+                            onDelete = {
+                                val nuevaLista = mensajesGuardados.toMutableList()
+                                nuevaLista.removeAt(index)
+                                mensajesGuardados = nuevaLista
+                                sharedPreferences.edit().putStringSet("mensajes", nuevaLista.toSet()).apply()
+                            },
+                            onClick = {
+                                textToSpeech?.speak(mensaje, TextToSpeech.QUEUE_FLUSH, null, null)
+                            }
+                        )
+                    }
                 }
             }
 

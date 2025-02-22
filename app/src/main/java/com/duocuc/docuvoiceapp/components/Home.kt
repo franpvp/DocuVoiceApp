@@ -207,16 +207,20 @@ fun Home(navController: NavController) {
 
     val translateLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = { _ ->
-            if (pdfText.isNotEmpty()) {
-                // Traducir el texto extraído
-                translateTextToEnglish(context, pdfText) { translatedText ->
-                    // Actualizar el texto traducido y mostrar el diálogo con la traducción
-                    displayedText = translatedText
-                    isPdfDialogVisibleTranslation = true // Mostrar el diálogo con el texto traducido
+        onResult = { uri ->
+            if (uri != null) {
+                val extractedText = extractTextFromPdf(context, uri)
+                if (extractedText != null) {
+                    pdfText = extractedText
+                    translateTextToEnglish(context, pdfText) { translatedText ->
+                        displayedText = translatedText
+                        isPdfDialogVisibleTranslation = true
+                    }
+                } else {
+                    Toast.makeText(context, "No se pudo extraer el texto del PDF", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(context, "No hay texto para traducir", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "No se seleccionó un archivo para traducir", Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -443,7 +447,7 @@ fun Home(navController: NavController) {
                                         permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                                         isSpeechDialogVisible = true
                                     }
-                                    if (index == 2 && !isPdfSelected) {
+                                    if (index == 2) {
                                         translateLauncher.launch("application/pdf")
 
                                     }
