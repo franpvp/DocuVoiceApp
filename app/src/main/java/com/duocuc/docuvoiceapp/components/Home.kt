@@ -67,6 +67,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfReader
@@ -503,7 +504,7 @@ fun Home(navController: NavController) {
                     .background(Color.Transparent)
                     .verticalScroll(rememberScrollState())
             ) {
-                Spacer(modifier = Modifier.height(350.dp))
+                Spacer(modifier = Modifier.height(380.dp))
 
                 // Tarjetas con funcionalidades
                 FuncionalidadCard(
@@ -756,8 +757,10 @@ fun translateTextToEnglish(context: Context, text: String, onTranslationComplete
 
     val translator = Translation.getClient(options)
 
+    val conditions = DownloadConditions.Builder().build()
+
     // Asegurarse de que el modelo esté descargado antes de traducir
-    translator.downloadModelIfNeeded()
+    translator.downloadModelIfNeeded(conditions)
         .addOnSuccessListener {
             // El modelo se ha descargado correctamente, proceder con la traducción
             translator.translate(text)
