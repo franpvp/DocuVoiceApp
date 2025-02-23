@@ -23,4 +23,4 @@ Este proyecto busca proporcionar una solución accesible para personas con disca
 
 1. Clona este repositorio en tu máquina local:
    ```bash
-   git clone https://github.com/usuario/repositorio.git
+   git clone https://github.com/franpvp/DocuVoiceApp.git
