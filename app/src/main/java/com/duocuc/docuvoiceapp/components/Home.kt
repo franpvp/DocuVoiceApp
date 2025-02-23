@@ -111,7 +111,6 @@ fun Home(navController: NavController) {
     val originalBackgroundColor = Color(0xFF13678A)
     val highContrastBackgroundColor = Color(0xFF000000)
     var displayedText by remember { mutableStateOf("") }
-    var isPdfSelected by remember { mutableStateOf(false) }
 
     // Establecer el esquema de colores en función del estado isHighContrast
     val colors = if (isHighContrast) {
@@ -226,7 +225,6 @@ fun Home(navController: NavController) {
         }
     )
 
-
     fun saveFontSize(size: Float) {
         sharedPreferences.edit().putFloat("fontSize", size).apply()
     }
@@ -290,6 +288,7 @@ fun Home(navController: NavController) {
         onDispose {
             textToSpeech?.stop()
             textToSpeech?.shutdown()
+
         }
     }
 
@@ -617,7 +616,7 @@ fun Home(navController: NavController) {
                                 },
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             ) {
-                                Text("Traducir") // Cambiar el texto del botón a "Traducir"
+                                Text("Traducir")
                             }
                         }
                     }
@@ -749,7 +748,6 @@ fun Home(navController: NavController) {
 }
 
 fun translateTextToEnglish(context: Context, text: String, onTranslationComplete: (String) -> Unit) {
-    // Crear el traductor
     val options = TranslatorOptions.Builder()
         .setSourceLanguage(TranslateLanguage.SPANISH)
         .setTargetLanguage(TranslateLanguage.ENGLISH)
@@ -759,23 +757,21 @@ fun translateTextToEnglish(context: Context, text: String, onTranslationComplete
 
     val conditions = DownloadConditions.Builder().build()
 
-    // Asegurarse de que el modelo esté descargado antes de traducir
     translator.downloadModelIfNeeded(conditions)
         .addOnSuccessListener {
-            // El modelo se ha descargado correctamente, proceder con la traducción
             translator.translate(text)
                 .addOnSuccessListener { translatedText ->
-                    // Pasar el texto traducido a la función de callback
                     onTranslationComplete(translatedText)
+                    translator.close() // Cierra el traductor después de la traducción
                 }
                 .addOnFailureListener { exception ->
-                    // Manejo de errores
                     Toast.makeText(context, "Error en la traducción: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    translator.close() // Cierra el traductor incluso si hay un error
                 }
         }
         .addOnFailureListener { exception ->
-            // Manejo de errores si no se puede descargar el modelo
             Toast.makeText(context, "Error al descargar el modelo: ${exception.message}", Toast.LENGTH_SHORT).show()
+            translator.close() // Cierra el traductor si falla la descarga del modelo
         }
 }
 

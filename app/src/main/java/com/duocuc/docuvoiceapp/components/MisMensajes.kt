@@ -61,6 +61,7 @@ fun MisMensajes(navController: NavController) {
         mutableStateOf(sharedPreferences.getStringSet("mensajes", mutableSetOf())?.toList() ?: listOf())
     }
 
+
     // Inicializar TextToSpeech
     var textToSpeech by remember {
         mutableStateOf<TextToSpeech?>(null)
@@ -101,7 +102,7 @@ fun MisMensajes(navController: NavController) {
                 ) {
                     // Botón de retroceder
                     IconButton(
-                        onClick = { navController.popBackStack() },
+                        onClick = { navController.navigate("home") },
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
@@ -299,7 +300,7 @@ fun CardMensajes(
                 BasicTextField(
                     value = textoEditable,
                     onValueChange = { nuevoTexto ->
-                        textoEditable = nuevoTexto // Permite escribir sin bloqueos
+                        textoEditable = nuevoTexto
                     },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
                     modifier = Modifier.fillMaxWidth()

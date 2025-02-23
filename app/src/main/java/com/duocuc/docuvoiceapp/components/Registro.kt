@@ -18,10 +18,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -392,14 +396,16 @@ fun DatePickerDialog(datePickerState: DatePickerState, onDismiss: () -> Unit, on
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .width(IntrinsicSize.Min) // Ajusta el ancho al contenido
+                .clip(RoundedCornerShape(12.dp)) // Bordes redondeados
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                    .width(320.dp) // Define un tamaño específico para el dialog
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 DatePicker(
                     state = datePickerState,
@@ -416,7 +422,7 @@ fun DatePickerDialog(datePickerState: DatePickerState, onDismiss: () -> Unit, on
                                 .format(Date(selectedMillis))
                             onDateSelected(selectedDateFormatted) // Pasa la fecha seleccionada al input
                         }
-                        onDismiss() // Cierra el DatePickerDialog
+                        onDismiss()
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -488,11 +494,23 @@ fun FechaNacimientoInput(
     onDateSelected: (String) -> Unit
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
+
+    val selectedDateMillis = remember(selectedDate) {
+        try {
+            SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(selectedDate)?.time
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedDateMillis,
+        initialDisplayedMonthMillis = selectedDateMillis
+    )
 
     OutlinedTextField(
         value = selectedDate,
-        onValueChange = { },
+        onValueChange = { newText -> onDateSelected(newText) },
         label = { Text("Fecha de Nacimiento", color = Color.Gray) },
         readOnly = true,
         trailingIcon = {
@@ -510,13 +528,18 @@ fun FechaNacimientoInput(
             .padding(10.dp)
             .clickable { showDatePicker = true },
         shape = RoundedCornerShape(30.dp),
+        textStyle = LocalTextStyle.current.copy(
+            textAlign = TextAlign.Center
+        ),
         colors = TextFieldDefaults.outlinedTextFieldColors(
             focusedBorderColor = Color(0xFF0367A6),
             unfocusedBorderColor = Color.Gray,
             disabledBorderColor = Color.Gray,
             errorBorderColor = Color.Red,
             cursorColor = Color(0xFF0367A6)
-        )
+        ),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        visualTransformation = DateInputVisualTransformation()
     )
 
     // Mostrar el DatePicker Dialog
@@ -537,4 +560,17 @@ fun convertMillisToDate(millis: Long): String {
 fun isValidEmail(email: String): Boolean {
     val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
     return emailRegex.matches(email)
+}
+
+class DateInputVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val trimmed = text.text.filter { it.isDigit() }.take(8) // Máximo 8 dígitos
+        val formatted = buildString {
+            for (i in trimmed.indices) {
+                append(trimmed[i])
+                if ((i == 1 || i == 3) && i != trimmed.lastIndex) append("/") // Agrega "/" en posiciones 2 y 5
+            }
+        }
+        return TransformedText(AnnotatedString(formatted), OffsetMapping.Identity)
+    }
 }

@@ -1,6 +1,9 @@
 package com.duocuc.docuvoiceapp
 
 import RecuperarContrasenaForm
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
+import android.content.ComponentName
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -70,6 +73,7 @@ class MainActivity : ComponentActivity() {
         }
 
     }
+
 }
 
 
